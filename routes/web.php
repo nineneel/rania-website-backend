@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactMessageController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FAQController;
 use App\Http\Controllers\HomeContentController;
 use App\Http\Controllers\SocialMediaController;
@@ -19,9 +20,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // User Management Routes - Only accessible by super-admin and admin
     Route::resource('users', UserManagementController::class)
