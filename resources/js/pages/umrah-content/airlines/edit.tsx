@@ -36,7 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EditAirline({ airline }: EditAirlineProps) {
-    const { data, setData, post, processing, errors } = useForm<UmrahAirlineFormData>({
+    const { data, setData, processing, errors } = useForm<UmrahAirlineFormData>({
         name: airline.name,
         logo: null,
         is_active: airline.is_active,

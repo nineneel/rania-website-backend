@@ -38,7 +38,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EditHotel({ hotel }: EditHotelProps) {
-    const { data, setData, post, processing, errors } = useForm<UmrahHotelFormData>({
+    const { data, setData, processing, errors } = useForm<UmrahHotelFormData>({
         name: hotel.name,
         stars: hotel.stars,
         location: hotel.location,

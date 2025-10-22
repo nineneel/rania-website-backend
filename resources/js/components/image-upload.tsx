@@ -13,7 +13,6 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({
-    value: _value,
     onChange,
     currentImageUrl,
     error,
