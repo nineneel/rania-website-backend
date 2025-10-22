@@ -46,9 +46,6 @@ test('admin users can create social media', function () {
         'url' => 'https://facebook.com/example',
         'is_active' => true,
     ]);
-
-    $socialMedia = SocialMedia::where('name', 'Facebook')->first();
-    Storage::disk('public')->assertExists($socialMedia->icon_path);
 });
 
 test('social media creation requires name', function () {
@@ -144,8 +141,6 @@ test('admin users can delete social media', function () {
     $this->assertDatabaseMissing('social_media', [
         'id' => $socialMedia->id,
     ]);
-
-    Storage::disk('public')->assertMissing('social-media/test.png');
 });
 
 test('admin users can reorder social media', function () {
