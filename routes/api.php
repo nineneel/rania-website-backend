@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\ContactApiController;
 use App\Http\Controllers\Api\FAQApiController;
 use App\Http\Controllers\Api\HomeContentApiController;
 use App\Http\Controllers\Api\SocialMediaApiController;
+use App\Http\Controllers\Api\TestimonialApiController;
+use App\Http\Controllers\Api\UmrahPackageApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,4 +22,6 @@ Route::get('/hero-slides', [HomeContentApiController::class, 'getHeroSlides']);
 Route::get('/events', [HomeContentApiController::class, 'getEvents']);
 Route::get('/social-media', [SocialMediaApiController::class, 'index']);
 Route::get('/faqs', [FAQApiController::class, 'index']);
+Route::get('/testimonials', [TestimonialApiController::class, 'index']);
+Route::get('/umrah-packages', [UmrahPackageApiController::class, 'index']);
 Route::post('/contact', [ContactApiController::class, 'store']);

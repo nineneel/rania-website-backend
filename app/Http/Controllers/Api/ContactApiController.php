@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use App\Notifications\ContactMessageReceived;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class ContactApiController extends Controller
@@ -33,7 +34,10 @@ class ContactApiController extends Controller
                 ->notify(new ContactMessageReceived($contactMessage));
         } catch (\Exception $e) {
             // Log error but don't fail the request
-            \Log::error('Failed to send contact message notification: ' . $e->getMessage());
+            Log::error('Failed to send contact message notification', [
+                'error' => $e->getMessage(),
+                'contact_message_id' => $contactMessage->id,
+            ]);
         }
 
         return response()->json([

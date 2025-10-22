@@ -5,18 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\HeroSlide;
+use Illuminate\Http\Request;
 
 class HomeContentApiController extends Controller
 {
     /**
-     * Get all active hero slides ordered by order field.
+     * Get active hero slides ordered by order field with pagination.
+     *
+     * Query params:
+     * - per_page: Number of items per page (default: 10, max: 50)
+     * - page: Page number (default: 1)
      */
-    public function getHeroSlides()
+    public function getHeroSlides(Request $request)
     {
+        $perPage = min((int) $request->input('per_page', 10), 50);
+
         $slides = HeroSlide::active()
             ->ordered()
-            ->get()
-            ->map(function ($slide) {
+            ->paginate($perPage)
+            ->through(function ($slide) {
                 return [
                     'id' => $slide->id,
                     'title' => $slide->title,
@@ -27,7 +34,17 @@ class HomeContentApiController extends Controller
             });
 
         return response()->json([
-            'data' => $slides,
+            'success' => true,
+            'data' => $slides->items(),
+            'pagination' => [
+                'current_page' => $slides->currentPage(),
+                'last_page' => $slides->lastPage(),
+                'per_page' => $slides->perPage(),
+                'total' => $slides->total(),
+                'from' => $slides->firstItem(),
+                'to' => $slides->lastItem(),
+                'has_more' => $slides->hasMorePages(),
+            ],
         ]);
     }
 
