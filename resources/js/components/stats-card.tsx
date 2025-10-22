@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 interface StatItem {
   label: string;
   value: number;
-  variant?: 'default' | 'success' | 'warning' | 'destructive';
+  variant?: 'default' | 'secondary' | 'outline' | 'destructive';
 }
 
 interface StatsCardProps {
