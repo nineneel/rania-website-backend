@@ -105,3 +105,97 @@ export interface EventFormData {
     link: string;
     is_available: boolean;
 }
+
+// Umrah Types
+export interface UmrahAirline {
+    id: number;
+    name: string;
+    logo_path: string;
+    logo_url: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahHotel {
+    id: number;
+    name: string;
+    stars: number;
+    location: string;
+    description?: string;
+    image_path?: string;
+    image_url?: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahPackage {
+    id: number;
+    title: string;
+    description: string;
+    image_path: string;
+    image_url: string;
+    departure: string;
+    duration: string;
+    frequency: string;
+    price: string;
+    currency: string;
+    is_active: boolean;
+    order: number;
+    hotels: UmrahHotel[];
+    airlines: UmrahAirline[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahAirlineFormData {
+    name: string;
+    logo: File | null;
+    is_active: boolean;
+}
+
+export interface UmrahHotelFormData {
+    name: string;
+    stars: number;
+    location: string;
+    description: string;
+    image: File | null;
+    is_active: boolean;
+}
+
+export interface UmrahPackageFormData {
+    title: string;
+    description: string;
+    image: File | null;
+    departure: string;
+    duration: string;
+    frequency: string;
+    price: string;
+    currency: string;
+    is_active: boolean;
+    hotel_ids: number[];
+    airline_ids: number[];
+}
+
+// Contact Message Types
+export type ContactMessageStatus = 'new' | 'read' | 'replied';
+
+export interface ContactMessage {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    subject: string;
+    message: string;
+    status: ContactMessageStatus;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ContactMessageCounts {
+    all: number;
+    new: number;
+    read: number;
+    replied: number;
+}

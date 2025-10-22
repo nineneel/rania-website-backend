@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\HomeContentController;
+use App\Http\Controllers\UmrahContentController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +45,44 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/events/{event}', [HomeContentController::class, 'updateEvent'])->name('events.update');
         Route::delete('/events/{event}', [HomeContentController::class, 'destroyEvent'])->name('events.destroy');
         Route::post('/events/reorder', [HomeContentController::class, 'updateEventsOrder'])->name('events.reorder');
+    });
+
+    // Umrah Content Management Routes - Only accessible by super-admin and admin
+    Route::prefix('umrah-content')->name('umrah-content.')->group(function () {
+        Route::get('/', [UmrahContentController::class, 'index'])->name('index');
+
+        // Airlines
+        Route::get('/airlines', [UmrahContentController::class, 'indexAirlines'])->name('airlines.index');
+        Route::get('/airlines/create', [UmrahContentController::class, 'createAirline'])->name('airlines.create');
+        Route::post('/airlines', [UmrahContentController::class, 'storeAirline'])->name('airlines.store');
+        Route::get('/airlines/{airline}/edit', [UmrahContentController::class, 'editAirline'])->name('airlines.edit');
+        Route::put('/airlines/{airline}', [UmrahContentController::class, 'updateAirline'])->name('airlines.update');
+        Route::delete('/airlines/{airline}', [UmrahContentController::class, 'destroyAirline'])->name('airlines.destroy');
+
+        // Hotels
+        Route::get('/hotels', [UmrahContentController::class, 'indexHotels'])->name('hotels.index');
+        Route::get('/hotels/create', [UmrahContentController::class, 'createHotel'])->name('hotels.create');
+        Route::post('/hotels', [UmrahContentController::class, 'storeHotel'])->name('hotels.store');
+        Route::get('/hotels/{hotel}/edit', [UmrahContentController::class, 'editHotel'])->name('hotels.edit');
+        Route::put('/hotels/{hotel}', [UmrahContentController::class, 'updateHotel'])->name('hotels.update');
+        Route::delete('/hotels/{hotel}', [UmrahContentController::class, 'destroyHotel'])->name('hotels.destroy');
+
+        // Packages
+        Route::get('/packages', [UmrahContentController::class, 'indexPackages'])->name('packages.index');
+        Route::get('/packages/create', [UmrahContentController::class, 'createPackage'])->name('packages.create');
+        Route::post('/packages', [UmrahContentController::class, 'storePackage'])->name('packages.store');
+        Route::get('/packages/{package}/edit', [UmrahContentController::class, 'editPackage'])->name('packages.edit');
+        Route::put('/packages/{package}', [UmrahContentController::class, 'updatePackage'])->name('packages.update');
+        Route::delete('/packages/{package}', [UmrahContentController::class, 'destroyPackage'])->name('packages.destroy');
+        Route::post('/packages/reorder', [UmrahContentController::class, 'updatePackagesOrder'])->name('packages.reorder');
+    });
+
+    // Contact Messages Routes - Accessible by all authenticated users
+    Route::prefix('contact-messages')->name('contact-messages.')->group(function () {
+        Route::get('/', [ContactMessageController::class, 'index'])->name('index');
+        Route::get('/{contactMessage}', [ContactMessageController::class, 'show'])->name('show');
+        Route::patch('/{contactMessage}/status', [ContactMessageController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
     });
 });
 
