@@ -152,6 +152,10 @@ class TestimonialController extends Controller
             Testimonial::where('id', $item['id'])->update(['order' => $item['order']]);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return back();
     }
 }

@@ -176,6 +176,10 @@ class SocialMediaController extends Controller
             SocialMedia::where('id', $item['id'])->update(['order' => $item['order']]);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return back();
     }
 }
