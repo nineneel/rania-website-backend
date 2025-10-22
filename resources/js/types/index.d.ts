@@ -238,3 +238,20 @@ export interface TestimonialFormData {
     text: string;
     is_active: boolean;
 }
+
+// FAQ Types
+export interface FAQ {
+    id: number;
+    question: string;
+    answer: string;
+    is_active: boolean;
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface FAQFormData {
+    question: string;
+    answer: string;
+    is_active: boolean;
+}

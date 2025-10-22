@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactMessageController;
+use App\Http\Controllers\FAQController;
 use App\Http\Controllers\HomeContentController;
 use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\TestimonialController;
@@ -107,6 +108,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{testimonial}', [TestimonialController::class, 'update'])->name('update');
         Route::delete('/{testimonial}', [TestimonialController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [TestimonialController::class, 'updateOrder'])->name('reorder');
+    });
+
+    // FAQ Routes - Only accessible by super-admin and admin
+    Route::prefix('faqs')->name('faqs.')->group(function () {
+        Route::get('/', [FAQController::class, 'index'])->name('index');
+        Route::get('/create', [FAQController::class, 'create'])->name('create');
+        Route::post('/', [FAQController::class, 'store'])->name('store');
+        Route::get('/{faq}/edit', [FAQController::class, 'edit'])->name('edit');
+        Route::put('/{faq}', [FAQController::class, 'update'])->name('update');
+        Route::delete('/{faq}', [FAQController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [FAQController::class, 'updateOrder'])->name('reorder');
     });
 });
 
