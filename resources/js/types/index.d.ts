@@ -219,3 +219,22 @@ export interface SocialMediaFormData {
     icon: File | null;
     is_active: boolean;
 }
+
+// Testimonial Types
+export interface Testimonial {
+    id: number;
+    name: string;
+    subtitle: string | null;
+    text: string;
+    is_active: boolean;
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TestimonialFormData {
+    name: string;
+    subtitle: string;
+    text: string;
+    is_active: boolean;
+}

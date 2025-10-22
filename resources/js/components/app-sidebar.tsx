@@ -13,7 +13,7 @@ import { dashboard } from '@/routes';
 import usersRoute from '@/routes/users';
 import { type NavGroup, type SharedData } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { Home, LayoutGrid, Users, Plane, MessageSquare, Share2 } from 'lucide-react';
+import { Home, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const getMainNavGroups = (userRole: string): NavGroup[] => {
@@ -44,6 +44,11 @@ const getMainNavGroups = (userRole: string): NavGroup[] => {
                     title: 'Umrah Content',
                     href: { url: '/umrah-content', method: 'get' },
                     icon: Plane,
+                },
+                {
+                    title: 'Testimonials',
+                    href: { url: '/testimonials', method: 'get' },
+                    icon: MessageCircle,
                 },
             ],
         });

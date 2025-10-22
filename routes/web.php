@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\HomeContentController;
 use App\Http\Controllers\SocialMediaController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\UmrahContentController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
@@ -95,6 +96,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{socialMedia}', [SocialMediaController::class, 'update'])->name('update');
         Route::delete('/{socialMedia}', [SocialMediaController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [SocialMediaController::class, 'updateOrder'])->name('reorder');
+    });
+
+    // Testimonial Routes - Only accessible by super-admin and admin
+    Route::prefix('testimonials')->name('testimonials.')->group(function () {
+        Route::get('/', [TestimonialController::class, 'index'])->name('index');
+        Route::get('/create', [TestimonialController::class, 'create'])->name('create');
+        Route::post('/', [TestimonialController::class, 'store'])->name('store');
+        Route::get('/{testimonial}/edit', [TestimonialController::class, 'edit'])->name('edit');
+        Route::put('/{testimonial}', [TestimonialController::class, 'update'])->name('update');
+        Route::delete('/{testimonial}', [TestimonialController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [TestimonialController::class, 'updateOrder'])->name('reorder');
     });
 });
 
