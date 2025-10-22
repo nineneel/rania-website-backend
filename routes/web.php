@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\HomeContentController;
+use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\UmrahContentController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
@@ -83,6 +84,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{contactMessage}', [ContactMessageController::class, 'show'])->name('show');
         Route::patch('/{contactMessage}/status', [ContactMessageController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
+    });
+
+    // Social Media Routes - Only accessible by super-admin and admin
+    Route::prefix('social-media')->name('social-media.')->group(function () {
+        Route::get('/', [SocialMediaController::class, 'index'])->name('index');
+        Route::get('/create', [SocialMediaController::class, 'create'])->name('create');
+        Route::post('/', [SocialMediaController::class, 'store'])->name('store');
+        Route::get('/{socialMedia}/edit', [SocialMediaController::class, 'edit'])->name('edit');
+        Route::put('/{socialMedia}', [SocialMediaController::class, 'update'])->name('update');
+        Route::delete('/{socialMedia}', [SocialMediaController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [SocialMediaController::class, 'updateOrder'])->name('reorder');
     });
 });
 

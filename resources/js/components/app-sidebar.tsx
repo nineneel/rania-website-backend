@@ -13,7 +13,7 @@ import { dashboard } from '@/routes';
 import usersRoute from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { Home, LayoutGrid, Users, Plane, MessageSquare } from 'lucide-react';
+import { Home, LayoutGrid, Users, Plane, MessageSquare, Share2 } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const getMainNavItems = (userRole: string): NavItem[] => {
@@ -25,7 +25,7 @@ const getMainNavItems = (userRole: string): NavItem[] => {
         },
     ];
 
-    // Only show User Management, Home Content, and Umrah Content for super-admin and admin
+    // Only show User Management, Home Content, Umrah Content, and Social Media for super-admin and admin
     if (userRole === 'super-admin' || userRole === 'admin') {
         items.push({
             title: 'Home Content',
@@ -36,6 +36,11 @@ const getMainNavItems = (userRole: string): NavItem[] => {
             title: 'Umrah Content',
             href: { url: '/umrah-content', method: 'get' },
             icon: Plane,
+        });
+        items.push({
+            title: 'Social Media',
+            href: { url: '/social-media', method: 'get' },
+            icon: Share2,
         });
         items.push({
             title: 'User Management',

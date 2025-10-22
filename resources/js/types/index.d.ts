@@ -199,3 +199,23 @@ export interface ContactMessageCounts {
     read: number;
     replied: number;
 }
+
+// Social Media Types
+export interface SocialMedia {
+    id: number;
+    name: string;
+    url: string;
+    icon_path: string | null;
+    icon_url: string | null;
+    order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SocialMediaFormData {
+    name: string;
+    url: string;
+    icon: File | null;
+    is_active: boolean;
+}

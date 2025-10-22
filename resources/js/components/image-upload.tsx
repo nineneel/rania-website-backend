@@ -9,6 +9,7 @@ interface ImageUploadProps {
     currentImageUrl?: string;
     error?: string;
     className?: string;
+    accept?: string;
 }
 
 export function ImageUpload({
@@ -17,13 +18,14 @@ export function ImageUpload({
     currentImageUrl,
     error,
     className,
+    accept = 'image/png,image/jpeg,image/jpg,image/webp',
 }: ImageUploadProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (file: File | null) => {
-        if (file && file.type.startsWith('image/')) {
+        if (file && (file.type.startsWith('image/') || file.type === 'image/svg+xml')) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreview(reader.result as string);
@@ -123,7 +125,7 @@ export function ImageUpload({
                 <input
                     ref={inputRef}
                     type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    accept={accept}
                     onChange={handleInputChange}
                     className="hidden"
                 />

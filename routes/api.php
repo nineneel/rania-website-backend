@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ContactApiController;
 use App\Http\Controllers\Api\HomeContentApiController;
+use App\Http\Controllers\Api\SocialMediaApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,4 +17,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/hero-slides', [HomeContentApiController::class, 'getHeroSlides']);
 Route::get('/events', [HomeContentApiController::class, 'getEvents']);
+Route::get('/social-media', [SocialMediaApiController::class, 'index']);
 Route::post('/contact', [ContactApiController::class, 'store']);

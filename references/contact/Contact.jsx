@@ -1,13 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../../components/layout/Header';
 import SEO from '../../components/common/SEO';
 import { StructuredData } from '../../components/common/SEO';
 import './Contact.css';
-import instagramIcon from '../../assets/icons/Instagram.svg';
-import facebookIcon from '../../assets/icons/Facebook.svg';
-import youtubeIcon from '../../assets/icons/YouTube.svg';
-import linkedinIcon from '../../assets/icons/LinkedIn.svg';
-import tiktokIcon from '../../assets/icons/tiktok.svg';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +14,29 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
+  const [socialMedia, setSocialMedia] = useState([]);
+  const [socialMediaLoading, setSocialMediaLoading] = useState(true);
+
+  // Fetch social media links on component mount
+  useEffect(() => {
+    const fetchSocialMedia = async () => {
+      try {
+        const API_URL = 'http://127.0.0.1:8000/api/social-media';
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          setSocialMedia(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch social media:', error);
+      } finally {
+        setSocialMediaLoading(false);
+      }
+    };
+
+    fetchSocialMedia();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -320,42 +338,38 @@ const Contact = () => {
       {/* Social Media Section */}
       <section className="contact-social-section">
         <h2 className="contact-social-title">Connect With Us</h2>
-        <div className="contact-social-links">
-          <a href="https://www.instagram.com/hajj.rania.co/" target="_blank" rel="noopener noreferrer" className="contact-social-link">
-            <span className="contact-social-icon">
-              <img src={instagramIcon} alt="Instagram" className="contact-social-icon-img" />
-            </span>
-            <span className="contact-social-name">Instagram</span>
-          </a>
-
-          <a href="https://www.linkedin.com/company/pt-rania-almutamayizah-travel/" target="_blank" rel="noopener noreferrer" className="contact-social-link">
-            <span className="contact-social-icon">
-              <img src={linkedinIcon} alt="LinkedIn" className="contact-social-icon-img" />
-            </span>
-            <span className="contact-social-name">LinkedIn</span>
-          </a>
-
-          <a href="https://www.facebook.com/raniaalmutamayizahtravel/" target="_blank" rel="noopener noreferrer" className="contact-social-link">
-            <span className="contact-social-icon">
-              <img src={facebookIcon} alt="Facebook" className="contact-social-icon-img" />
-            </span>
-            <span className="contact-social-name">Facebook</span>
-          </a>
-
-          <a href="https://www.youtube.com/@HajjRania" target="_blank" rel="noopener noreferrer" className="contact-social-link">
-            <span className="contact-social-icon">
-              <img src={youtubeIcon} alt="YouTube" className="contact-social-icon-img" />
-            </span>
-            <span className="contact-social-name">YouTube</span>
-          </a>
-
-          <a href="https://www.tiktok.com/@hajjrania.co?_t=ZS-90RuTBM3OZI&_r=1" target="_blank" rel="noopener noreferrer" className="contact-social-link">
-            <span className="contact-social-icon">
-              <img src={tiktokIcon} alt="TikTok" className="contact-social-icon-img" />
-            </span>
-            <span className="contact-social-name">TikTok</span>
-          </a>
-        </div>
+        {socialMediaLoading ? (
+          <div className="contact-social-loading">Loading social media...</div>
+        ) : socialMedia.length > 0 ? (
+          <div className="contact-social-links">
+            {socialMedia.map((social) => (
+              <a
+                key={social.id}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-social-link"
+              >
+                <span className="contact-social-icon">
+                  {social.icon_url ? (
+                    <img
+                      src={social.icon_url}
+                      alt={social.name}
+                      className="contact-social-icon-img"
+                    />
+                  ) : (
+                    <span className="contact-social-icon-placeholder">
+                      {social.name.charAt(0)}
+                    </span>
+                  )}
+                </span>
+                <span className="contact-social-name">{social.name}</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="contact-social-empty">No social media links available</div>
+        )}
       </section>
     </div>
   );
