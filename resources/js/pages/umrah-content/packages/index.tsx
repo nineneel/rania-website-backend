@@ -25,21 +25,18 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Head, Link, router } from '@inertiajs/react';
-import { Edit, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { Building2, Edit, GripVertical, Plane, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface PackagesIndexProps {
     packages: UmrahPackage[];
+    showNavigation?: boolean; // Flag to show Hotels and Airlines buttons
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Umrah Content',
         href: '/umrah-content',
-    },
-    {
-        title: 'Packages',
-        href: '/umrah-content/packages',
     },
 ];
 
@@ -97,7 +94,7 @@ function SortableRow({ pkg, onDelete }: { pkg: UmrahPackage; onDelete: () => voi
     );
 }
 
-export default function PackagesIndex({ packages }: PackagesIndexProps) {
+export default function PackagesIndex({ packages, showNavigation = false }: PackagesIndexProps) {
     const [pkgs, setPkgs] = useState(packages);
 
     const sensors = useSensors(
@@ -141,13 +138,49 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Packages Management" />
+            <Head title="Umrah Content Management" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
+                {/* Navigation buttons for Hotels and Airlines */}
+                {showNavigation && (
+                    <div className="flex gap-3">
+                        <Link href="/umrah-content/hotels" className="flex-1">
+                            <Button variant="outline" className="w-full h-auto py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                        <Building2 className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Hotels</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Manage hotels
+                                        </div>
+                                    </div>
+                                </div>
+                            </Button>
+                        </Link>
+                        <Link href="/umrah-content/airlines" className="flex-1">
+                            <Button variant="outline" className="w-full h-auto py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                        <Plane className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Airlines</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Manage airlines
+                                        </div>
+                                    </div>
+                                </div>
+                            </Button>
+                        </Link>
+                    </div>
+                )}
+
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Packages Management</CardTitle>
+                                <CardTitle>Umrah Packages</CardTitle>
                                 <CardDescription>
                                     Manage umrah packages displayed on the umrah page. Drag to
                                     reorder.

@@ -29,10 +29,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Home Content Management Routes - Only accessible by super-admin and admin
     Route::prefix('home-content')->name('home-content.')->group(function () {
+        // Main index with tabs
         Route::get('/', [HomeContentController::class, 'index'])->name('index');
 
-        // Hero Slides
-        Route::get('/hero-slides', [HomeContentController::class, 'indexHeroSlides'])->name('hero-slides.index');
+        // Hero Slides - redirect to main index with hero-slides tab
+        Route::get('/hero-slides', function () {
+            return redirect()->route('home-content.index');
+        })->name('hero-slides.index');
         Route::get('/hero-slides/create', [HomeContentController::class, 'createHeroSlide'])->name('hero-slides.create');
         Route::post('/hero-slides', [HomeContentController::class, 'storeHeroSlide'])->name('hero-slides.store');
         Route::get('/hero-slides/{heroSlide}/edit', [HomeContentController::class, 'editHeroSlide'])->name('hero-slides.edit');
@@ -40,8 +43,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/hero-slides/{heroSlide}', [HomeContentController::class, 'destroyHeroSlide'])->name('hero-slides.destroy');
         Route::post('/hero-slides/reorder', [HomeContentController::class, 'updateHeroSlidesOrder'])->name('hero-slides.reorder');
 
-        // Events
-        Route::get('/events', [HomeContentController::class, 'indexEvents'])->name('events.index');
+        // Events - redirect to main index with events tab
+        Route::get('/events', function () {
+            return redirect()->route('home-content.index');
+        })->name('events.index');
         Route::get('/events/create', [HomeContentController::class, 'createEvent'])->name('events.create');
         Route::post('/events', [HomeContentController::class, 'storeEvent'])->name('events.store');
         Route::get('/events/{event}/edit', [HomeContentController::class, 'editEvent'])->name('events.edit');
@@ -52,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Umrah Content Management Routes - Only accessible by super-admin and admin
     Route::prefix('umrah-content')->name('umrah-content.')->group(function () {
+        // Main index now shows packages list
         Route::get('/', [UmrahContentController::class, 'index'])->name('index');
 
         // Airlines
@@ -70,8 +76,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/hotels/{hotel}', [UmrahContentController::class, 'updateHotel'])->name('hotels.update');
         Route::delete('/hotels/{hotel}', [UmrahContentController::class, 'destroyHotel'])->name('hotels.destroy');
 
-        // Packages
-        Route::get('/packages', [UmrahContentController::class, 'indexPackages'])->name('packages.index');
+        // Packages - redirect to main index for backward compatibility
+        Route::get('/packages', function () {
+            return redirect()->route('umrah-content.index');
+        })->name('packages.index');
         Route::get('/packages/create', [UmrahContentController::class, 'createPackage'])->name('packages.create');
         Route::post('/packages', [UmrahContentController::class, 'storePackage'])->name('packages.store');
         Route::get('/packages/{package}/edit', [UmrahContentController::class, 'editPackage'])->name('packages.edit');

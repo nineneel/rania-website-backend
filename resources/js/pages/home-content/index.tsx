@@ -6,14 +6,33 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Event, HeroSlide } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { ArrowRight, Image, Calendar } from 'lucide-react';
+import { type BreadcrumbItem, type Event, type HeroSlide } from '@/types';
+import {
+    DndContext,
+    DragEndEvent,
+    PointerSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    SortableContext,
+    arrayMove,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Head, Link, router } from '@inertiajs/react';
+import { Edit, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface HomeContentProps {
     heroSlides: HeroSlide[];
     events: Event[];
+    activeTab?: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,106 +42,366 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function HomeContentIndex({ heroSlides, events }: HomeContentProps) {
+// Hero Slides Components
+function HeroSlideSortableRow({
+    slide,
+    onDelete,
+}: {
+    slide: HeroSlide;
+    onDelete: () => void;
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+        useSortable({ id: slide.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <tr
+            ref={setNodeRef}
+            style={style}
+            className="border-b last:border-0 hover:bg-muted/50"
+        >
+            <td className="p-3">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="flex cursor-grab items-center active:cursor-grabbing"
+                >
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                </div>
+            </td>
+            <td className="p-3">
+                <img
+                    src={slide.image_url || `/storage/${slide.image_path}`}
+                    alt={slide.title}
+                    className="h-16 w-24 rounded object-cover"
+                />
+            </td>
+            <td className="p-3 font-medium">{slide.title}</td>
+            <td className="p-3 text-muted-foreground">{slide.subtitle}</td>
+            <td className="p-3">
+                <Switch checked={slide.is_active} disabled />
+            </td>
+            <td className="p-3">
+                <div className="flex justify-end gap-2">
+                    <Link href={`/home-content/hero-slides/${slide.id}/edit`}>
+                        <Button variant="ghost" size="sm">
+                            <Edit className="size-4" />
+                        </Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" onClick={onDelete}>
+                        <Trash2 className="size-4" />
+                    </Button>
+                </div>
+            </td>
+        </tr>
+    );
+}
+
+// Events Components
+function EventSortableRow({ event, onDelete }: { event: Event; onDelete: () => void }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+        useSortable({ id: event.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <tr
+            ref={setNodeRef}
+            style={style}
+            className="border-b last:border-0 hover:bg-muted/50"
+        >
+            <td className="p-3">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="flex cursor-grab items-center active:cursor-grabbing"
+                >
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                </div>
+            </td>
+            <td className="p-3">
+                <img
+                    src={event.image_url || `/storage/${event.image_path}`}
+                    alt={event.title}
+                    className="h-16 w-24 rounded object-cover"
+                />
+            </td>
+            <td className="p-3 font-medium">{event.title}</td>
+            <td className="p-3 text-muted-foreground">
+                <div className="line-clamp-2 max-w-md">{event.description}</div>
+            </td>
+            <td className="p-3">
+                <Switch checked={event.is_available} disabled />
+            </td>
+            <td className="p-3">
+                <div className="flex justify-end gap-2">
+                    <Link href={`/home-content/events/${event.id}/edit`}>
+                        <Button variant="ghost" size="sm">
+                            <Edit className="size-4" />
+                        </Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" onClick={onDelete}>
+                        <Trash2 className="size-4" />
+                    </Button>
+                </div>
+            </td>
+        </tr>
+    );
+}
+
+export default function HomeContentIndex({
+    heroSlides,
+    events,
+    activeTab = 'hero-slides',
+}: HomeContentProps) {
+    const [slides, setSlides] = useState(heroSlides);
+    const [eventsList, setEventsList] = useState(events);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+    );
+
+    // Hero Slides handlers
+    const handleSlidesDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        setSlides((items) => {
+            const oldIndex = items.findIndex((item) => item.id === active.id);
+            const newIndex = items.findIndex((item) => item.id === over.id);
+            const newItems = arrayMove(items, oldIndex, newIndex);
+
+            // Update order in backend
+            const orderedItems = newItems.map((item, index) => ({
+                id: item.id,
+                order: index,
+            }));
+
+            router.post(
+                '/home-content/hero-slides/reorder',
+                { items: orderedItems },
+                { preserveScroll: true },
+            );
+
+            return newItems;
+        });
+    };
+
+    const handleDeleteSlide = (slideId: number) => {
+        if (confirm('Are you sure you want to delete this hero slide?')) {
+            router.delete(`/home-content/hero-slides/${slideId}`);
+        }
+    };
+
+    // Events handlers
+    const handleEventsDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        setEventsList((items) => {
+            const oldIndex = items.findIndex((item) => item.id === active.id);
+            const newIndex = items.findIndex((item) => item.id === over.id);
+            const newItems = arrayMove(items, oldIndex, newIndex);
+
+            // Update order in backend
+            const orderedItems = newItems.map((item, index) => ({
+                id: item.id,
+                order: index,
+            }));
+
+            router.post(
+                '/home-content/events/reorder',
+                { items: orderedItems },
+                { preserveScroll: true },
+            );
+
+            return newItems;
+        });
+    };
+
+    const handleDeleteEvent = (eventId: number) => {
+        if (confirm('Are you sure you want to delete this event?')) {
+            router.delete(`/home-content/events/${eventId}`);
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Home Content Management" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold">Home Content Management</h1>
-                    <p className="mt-2 text-muted-foreground">
-                        Manage hero slides and events displayed on the home page
-                    </p>
-                </div>
+                <Tabs defaultValue={activeTab} className="w-full">
+                    <TabsList className="grid w-full max-w-md grid-cols-2">
+                        <TabsTrigger value="hero-slides">Hero Slides</TabsTrigger>
+                        <TabsTrigger value="events">Events</TabsTrigger>
+                    </TabsList>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    {/* Hero Slides Card */}
-                    <Card className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                                    <Image className="h-6 w-6 text-primary" />
+                    {/* Hero Slides Tab */}
+                    <TabsContent value="hero-slides">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Hero Slides</CardTitle>
+                                        <CardDescription>
+                                            Manage hero slides displayed on the home page. Drag
+                                            to reorder.
+                                        </CardDescription>
+                                    </div>
+                                    <Link href="/home-content/hero-slides/create">
+                                        <Button>
+                                            <Plus className="mr-2 size-4" />
+                                            Add Hero Slide
+                                        </Button>
+                                    </Link>
                                 </div>
-                                <div>
-                                    <CardTitle>Hero Slides</CardTitle>
-                                    <CardDescription>
-                                        {heroSlides.length} slide{heroSlides.length !== 1 ? 's' : ''}
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="mb-4 text-sm text-muted-foreground">
-                                Manage the carousel slides displayed at the top of the home
-                                page
-                            </p>
-                            <Link href="/home-content/hero-slides">
-                                <Button className="w-full">
-                                    Manage Hero Slides
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
+                            </CardHeader>
+                            <CardContent>
+                                {slides.length === 0 ? (
+                                    <div className="py-8 text-center text-muted-foreground">
+                                        No hero slides yet. Add your first one!
+                                    </div>
+                                ) : (
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleSlidesDragEnd}
+                                    >
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full">
+                                                <thead className="border-b">
+                                                    <tr className="text-sm text-muted-foreground">
+                                                        <th className="w-12 p-3"></th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Image
+                                                        </th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Title
+                                                        </th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Subtitle
+                                                        </th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Status
+                                                        </th>
+                                                        <th className="p-3 text-right font-medium">
+                                                            Actions
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <SortableContext
+                                                    items={slides.map((s) => s.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                >
+                                                    <tbody>
+                                                        {slides.map((slide) => (
+                                                            <HeroSlideSortableRow
+                                                                key={slide.id}
+                                                                slide={slide}
+                                                                onDelete={() =>
+                                                                    handleDeleteSlide(slide.id)
+                                                                }
+                                                            />
+                                                        ))}
+                                                    </tbody>
+                                                </SortableContext>
+                                            </table>
+                                        </div>
+                                    </DndContext>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                    {/* Events Card */}
-                    <Card className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                                    <Calendar className="h-6 w-6 text-primary" />
+                    {/* Events Tab */}
+                    <TabsContent value="events">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Events</CardTitle>
+                                        <CardDescription>
+                                            Manage events displayed on the home page. Drag to
+                                            reorder.
+                                        </CardDescription>
+                                    </div>
+                                    <Link href="/home-content/events/create">
+                                        <Button>
+                                            <Plus className="mr-2 size-4" />
+                                            Add Event
+                                        </Button>
+                                    </Link>
                                 </div>
-                                <div>
-                                    <CardTitle>Events</CardTitle>
-                                    <CardDescription>
-                                        {events.length} event{events.length !== 1 ? 's' : ''}
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="mb-4 text-sm text-muted-foreground">
-                                Manage events and activities shown on the home page
-                            </p>
-                            <Link href="/home-content/events">
-                                <Button className="w-full">
-                                    Manage Events
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Quick Stats */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Overview</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="rounded-lg border p-4">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Image className="h-4 w-4" />
-                                    Active Hero Slides
-                                </div>
-                                <p className="mt-2 text-2xl font-bold">
-                                    {heroSlides.filter((slide) => slide.is_active).length}
-                                </p>
-                            </div>
-                            <div className="rounded-lg border p-4">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Calendar className="h-4 w-4" />
-                                    Available Events
-                                </div>
-                                <p className="mt-2 text-2xl font-bold">
-                                    {events.filter((event) => event.is_available).length}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                            </CardHeader>
+                            <CardContent>
+                                {eventsList.length === 0 ? (
+                                    <div className="py-8 text-center text-muted-foreground">
+                                        No events yet. Add your first one!
+                                    </div>
+                                ) : (
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleEventsDragEnd}
+                                    >
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full">
+                                                <thead className="border-b">
+                                                    <tr className="text-sm text-muted-foreground">
+                                                        <th className="w-12 p-3"></th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Image
+                                                        </th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Title
+                                                        </th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Description
+                                                        </th>
+                                                        <th className="p-3 text-left font-medium">
+                                                            Status
+                                                        </th>
+                                                        <th className="p-3 text-right font-medium">
+                                                            Actions
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <SortableContext
+                                                    items={eventsList.map((e) => e.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                >
+                                                    <tbody>
+                                                        {eventsList.map((event) => (
+                                                            <EventSortableRow
+                                                                key={event.id}
+                                                                event={event}
+                                                                onDelete={() =>
+                                                                    handleDeleteEvent(event.id)
+                                                                }
+                                                            />
+                                                        ))}
+                                                    </tbody>
+                                                </SortableContext>
+                                            </table>
+                                        </div>
+                                    </DndContext>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
         </AppLayout>
     );

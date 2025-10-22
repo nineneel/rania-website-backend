@@ -24,7 +24,7 @@ class UmrahContentController extends Controller
     }
 
     /**
-     * Display umrah content management page (dashboard).
+     * Display umrah content management page (now shows packages list).
      */
     public function index()
     {
@@ -35,14 +35,11 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $packages = UmrahPackage::ordered()->get();
-        $hotels = UmrahHotel::all();
-        $airlines = UmrahAirline::all();
+        $packages = UmrahPackage::with(['hotels', 'airlines'])->ordered()->get();
 
-        return Inertia::render('umrah-content/index', [
+        return Inertia::render('umrah-content/packages/index', [
             'packages' => $packages,
-            'hotels' => $hotels,
-            'airlines' => $airlines,
+            'showNavigation' => true, // Flag to show Hotels and Airlines buttons
         ]);
     }
 
