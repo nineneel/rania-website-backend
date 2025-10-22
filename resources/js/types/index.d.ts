@@ -65,3 +65,43 @@ export interface PaginatedData<T> {
     to: number;
     total: number;
 }
+
+export interface HeroSlide {
+    id: number;
+    title: string;
+    subtitle: string;
+    image_path: string;
+    image_url?: string;
+    order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Event {
+    id: number;
+    title: string;
+    description: string;
+    image_path: string;
+    image_url?: string;
+    link: string | null;
+    is_available: boolean;
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface HeroSlideFormData {
+    title: string;
+    subtitle: string;
+    image: File | null;
+    is_active: boolean;
+}
+
+export interface EventFormData {
+    title: string;
+    description: string;
+    image: File | null;
+    link: string;
+    is_available: boolean;
+}

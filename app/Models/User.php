@@ -85,6 +85,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user can manage home content
+     */
+    public function canManageHomeContent(): bool
+    {
+        return $this->isAdmin() || $this->isSuperAdmin();
+    }
+
+    /**
      * Get roles that this user can assign to others
      */
     public function getAssignableRoles(): array
