@@ -33,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Hero Slides - redirect to main index with hero-slides tab
         Route::get('/hero-slides', function () {
-            return redirect()->route('home-content.index');
+            return redirect()->route('home-content.index', ['tab' => 'hero-slides']);
         })->name('hero-slides.index');
         Route::get('/hero-slides/create', [HomeContentController::class, 'createHeroSlide'])->name('hero-slides.create');
         Route::post('/hero-slides', [HomeContentController::class, 'storeHeroSlide'])->name('hero-slides.store');
@@ -44,7 +44,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Events - redirect to main index with events tab
         Route::get('/events', function () {
-            return redirect()->route('home-content.index');
+            return redirect()->route('home-content.index', ['tab' => 'events']);
         })->name('events.index');
         Route::get('/events/create', [HomeContentController::class, 'createEvent'])->name('events.create');
         Route::post('/events', [HomeContentController::class, 'storeEvent'])->name('events.store');

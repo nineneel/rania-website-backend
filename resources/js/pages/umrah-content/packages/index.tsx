@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -6,7 +7,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type UmrahPackage } from '@/types';
 import {
@@ -76,7 +76,9 @@ function SortableRow({ pkg, onDelete }: { pkg: UmrahPackage; onDelete: () => voi
             <td className="p-3 text-muted-foreground">{pkg.duration}</td>
             <td className="p-3 font-medium">{pkg.currency} {pkg.price}</td>
             <td className="p-3">
-                <Switch checked={pkg.is_active} disabled />
+                <Badge variant={pkg.is_active ? 'default' : 'secondary'}>
+                    {pkg.is_active ? 'Active' : 'Inactive'}
+                </Badge>
             </td>
             <td className="p-3">
                 <div className="flex justify-end gap-2">
@@ -132,7 +134,13 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
 
     const handleDelete = (packageId: number) => {
         if (confirm('Are you sure you want to delete this package?')) {
-            router.delete(`/umrah-content/packages/${packageId}`);
+            router.delete(`/umrah-content/packages/${packageId}`, {
+                onSuccess: () => {
+                    setPkgs((currentPackages) =>
+                        currentPackages.filter((pkg) => pkg.id !== packageId),
+                    );
+                },
+            });
         }
     };
 

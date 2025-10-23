@@ -25,7 +25,7 @@ class HomeContentController extends Controller
     /**
      * Display home content management page (dashboard).
      */
-    public function index()
+    public function index(Request $request)
     {
         // Check if user can manage home content
         if (!$this->user()->canManageHomeContent()) {
@@ -40,6 +40,7 @@ class HomeContentController extends Controller
         return Inertia::render('home-content/index', [
             'heroSlides' => $heroSlides,
             'events' => $events,
+            'activeTab' => $request->query('tab', 'hero-slides'),
         ]);
     }
 
@@ -166,7 +167,7 @@ class HomeContentController extends Controller
 
         HeroSlide::create($validated);
 
-        return redirect()->route('home-content.hero-slides.index')
+        return redirect()->route('home-content.index', ['tab' => 'hero-slides'])
             ->with('success', 'Hero slide created successfully.');
     }
 
@@ -199,7 +200,7 @@ class HomeContentController extends Controller
 
         $heroSlide->update($validated);
 
-        return redirect()->route('home-content.hero-slides.index')
+        return redirect()->route('home-content.index', ['tab' => 'hero-slides'])
             ->with('success', 'Hero slide updated successfully.');
     }
 
@@ -219,7 +220,7 @@ class HomeContentController extends Controller
 
         $heroSlide->delete();
 
-        return redirect()->route('home-content.hero-slides.index')
+        return redirect()->route('home-content.index', ['tab' => 'hero-slides'])
             ->with('success', 'Hero slide deleted successfully.');
     }
 
@@ -273,7 +274,7 @@ class HomeContentController extends Controller
 
         Event::create($validated);
 
-        return redirect()->route('home-content.events.index')
+        return redirect()->route('home-content.index', ['tab' => 'events'])
             ->with('success', 'Event created successfully.');
     }
 
@@ -307,7 +308,7 @@ class HomeContentController extends Controller
 
         $event->update($validated);
 
-        return redirect()->route('home-content.events.index')
+        return redirect()->route('home-content.index', ['tab' => 'events'])
             ->with('success', 'Event updated successfully.');
     }
 
@@ -327,7 +328,7 @@ class HomeContentController extends Controller
 
         $event->delete();
 
-        return redirect()->route('home-content.events.index')
+        return redirect()->route('home-content.index', ['tab' => 'events'])
             ->with('success', 'Event deleted successfully.');
     }
 

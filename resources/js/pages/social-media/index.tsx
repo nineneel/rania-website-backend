@@ -154,7 +154,13 @@ export default function SocialMediaIndex({ socialMedia }: SocialMediaIndexProps)
 
     const handleDelete = (itemId: number) => {
         if (confirm('Are you sure you want to delete this social media?')) {
-            router.delete(`/social-media/${itemId}`);
+            router.delete(`/social-media/${itemId}`, {
+                onSuccess: () => {
+                    setItems((currentItems) =>
+                        currentItems.filter((item) => item.id !== itemId),
+                    );
+                },
+            });
         }
     };
 

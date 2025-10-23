@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -6,7 +7,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type Event, type HeroSlide } from '@/types';
@@ -84,7 +84,9 @@ function HeroSlideSortableRow({
             <td className="p-3 font-medium">{slide.title}</td>
             <td className="p-3 text-muted-foreground">{slide.subtitle}</td>
             <td className="p-3">
-                <Switch checked={slide.is_active} disabled />
+                <Badge variant={slide.is_active ? 'default' : 'secondary'}>
+                    {slide.is_active ? 'Active' : 'Inactive'}
+                </Badge>
             </td>
             <td className="p-3">
                 <div className="flex justify-end gap-2">
@@ -140,7 +142,9 @@ function EventSortableRow({ event, onDelete }: { event: Event; onDelete: () => v
                 <div className="line-clamp-2 max-w-md">{event.description}</div>
             </td>
             <td className="p-3">
-                <Switch checked={event.is_available} disabled />
+                <Badge variant={event.is_available ? 'default' : 'secondary'}>
+                    {event.is_available ? 'Available' : 'Unavailable'}
+                </Badge>
             </td>
             <td className="p-3">
                 <div className="flex justify-end gap-2">
@@ -202,7 +206,13 @@ export default function HomeContentIndex({
 
     const handleDeleteSlide = (slideId: number) => {
         if (confirm('Are you sure you want to delete this hero slide?')) {
-            router.delete(`/home-content/hero-slides/${slideId}`);
+            router.delete(`/home-content/hero-slides/${slideId}`, {
+                onSuccess: () => {
+                    setSlides((currentSlides) =>
+                        currentSlides.filter((slide) => slide.id !== slideId),
+                    );
+                },
+            });
         }
     };
 
@@ -234,7 +244,13 @@ export default function HomeContentIndex({
 
     const handleDeleteEvent = (eventId: number) => {
         if (confirm('Are you sure you want to delete this event?')) {
-            router.delete(`/home-content/events/${eventId}`);
+            router.delete(`/home-content/events/${eventId}`, {
+                onSuccess: () => {
+                    setEventsList((currentEvents) =>
+                        currentEvents.filter((event) => event.id !== eventId),
+                    );
+                },
+            });
         }
     };
 
