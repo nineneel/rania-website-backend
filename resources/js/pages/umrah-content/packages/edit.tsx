@@ -49,6 +49,7 @@ export default function EditPackage({ package: pkg, hotels, airlines }: EditPack
         frequency: pkg.frequency,
         price: pkg.price.toString(),
         currency: pkg.currency,
+        link: pkg.link || '',
         is_active: pkg.is_active,
         hotel_ids: pkg.hotels?.map(h => h.id) || [],
         airline_ids: pkg.airlines?.map(a => a.id) || [],
@@ -204,6 +205,18 @@ export default function EditPackage({ package: pkg, hotels, airlines }: EditPack
                                     </div>
                                     {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="link">Link (Optional)</Label>
+                                <Input
+                                    id="link"
+                                    type="url"
+                                    value={data.link}
+                                    onChange={(e) => setData('link', e.target.value)}
+                                    placeholder="e.g., https://example.com/package-details"
+                                />
+                                {errors.link && <p className="text-sm text-destructive">{errors.link}</p>}
                             </div>
 
                             <div className="space-y-2">

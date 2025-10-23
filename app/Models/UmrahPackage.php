@@ -16,6 +16,7 @@ class UmrahPackage extends Model
         'frequency',
         'price',
         'currency',
+        'link',
         'is_active',
         'order',
     ];

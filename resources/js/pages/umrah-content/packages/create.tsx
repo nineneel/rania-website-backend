@@ -48,6 +48,7 @@ export default function CreatePackage({ hotels, airlines }: CreatePackageProps) 
         frequency: '',
         price: '',
         currency: 'Rp',
+        link: '',
         is_active: true,
         hotel_ids: [],
         airline_ids: [],
@@ -193,6 +194,18 @@ export default function CreatePackage({ hotels, airlines }: CreatePackageProps) 
                                     </div>
                                     {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="link">Link (Optional)</Label>
+                                <Input
+                                    id="link"
+                                    type="url"
+                                    value={data.link}
+                                    onChange={(e) => setData('link', e.target.value)}
+                                    placeholder="e.g., https://example.com/package-details"
+                                />
+                                {errors.link && <p className="text-sm text-destructive">{errors.link}</p>}
                             </div>
 
                             <div className="space-y-2">

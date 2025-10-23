@@ -141,6 +141,7 @@ export interface UmrahPackage {
     frequency: string;
     price: string;
     currency: string;
+    link: string | null;
     is_active: boolean;
     order: number;
     hotels: UmrahHotel[];
@@ -173,6 +174,7 @@ export interface UmrahPackageFormData {
     frequency: string;
     price: string;
     currency: string;
+    link: string;
     is_active: boolean;
     hotel_ids: number[];
     airline_ids: number[];

@@ -28,6 +28,7 @@ class UmrahPackageApiController extends Controller
                 'duration' => $package->duration,
                 'frequency' => $package->frequency,
                 'price' => $package->price,
+                'link' => $package->link,
                 'currency' => $package->currency,
                 'hotels' => $package->hotels->map(function ($hotel) {
                     return [

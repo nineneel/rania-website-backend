@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('frequency', 50);
             $table->decimal('price', 15, 2);
             $table->string('currency', 10);
+            $table->string('link')->nullable();
             $table->boolean('is_active')->default(true);
             $table->integer('order')->default(0);
             $table->timestamps();
