@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\HomeContentApiController;
 use App\Http\Controllers\Api\SocialMediaApiController;
 use App\Http\Controllers\Api\TestimonialApiController;
 use App\Http\Controllers\Api\UmrahPackageApiController;
+use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,3 +26,4 @@ Route::get('/faqs', [FAQApiController::class, 'index']);
 Route::get('/testimonials', [TestimonialApiController::class, 'index']);
 Route::get('/umrah-packages', [UmrahPackageApiController::class, 'index']);
 Route::post('/contact', [ContactApiController::class, 'store']);
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);

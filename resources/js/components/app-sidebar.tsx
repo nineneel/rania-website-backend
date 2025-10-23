@@ -13,7 +13,7 @@ import { dashboard } from '@/routes';
 import usersRoute from '@/routes/users';
 import { type NavGroup, type SharedData } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { Home, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle, HelpCircle } from 'lucide-react';
+import { Home, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle, HelpCircle, Mail } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const getMainNavGroups = (userRole: string): NavGroup[] => {
@@ -70,6 +70,11 @@ const getMainNavGroups = (userRole: string): NavGroup[] => {
                     title: 'Contact Messages',
                     href: { url: '/contact-messages', method: 'get' },
                     icon: MessageSquare,
+                },
+                {
+                    title: 'Newsletter Subscribers',
+                    href: { url: '/newsletter-subscribers', method: 'get' },
+                    icon: Mail,
                 },
             ],
         });

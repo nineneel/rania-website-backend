@@ -32,8 +32,10 @@ Admin dashboard for managing Rania Travel & Umrah website content. Built with La
 
 ### Communication
 - **Contact Messages** - View and manage contact form submissions
+- **Newsletter Subscribers** - Manage newsletter subscriptions with instant activation
 - Email notifications for new messages
 - Message status tracking (new, read, replied)
+- Newsletter unsubscribe management
 
 ### User Management
 - Authentication with Laravel Fortify
@@ -188,6 +190,7 @@ The application provides REST API endpoints for the public website to consume.
 | GET | `/api/testimonials` | Get active testimonials | ✅ |
 | GET | `/api/umrah-packages` | Get packages with hotels & airlines | ❌ |
 | POST | `/api/contact` | Submit contact form | N/A |
+| POST | `/api/newsletter/subscribe` | Subscribe to newsletter | N/A |
 
 ---
 
@@ -436,6 +439,62 @@ Submit a contact form message with email notification.
 
 ---
 
+### Newsletter Subscription
+
+Subscribe to the newsletter with instant activation.
+
+**Endpoint:** `POST /api/newsletter/subscribe`
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Validation:**
+- `email` - Required, valid email, max 255 characters, must be unique
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "Thank you for subscribing to our newsletter!"
+}
+```
+
+**Error Response (422):**
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "email": ["This email is already subscribed to our newsletter."]
+  }
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "message": "An error occurred while processing your subscription. Please try again later."
+}
+```
+
+**Behavior:**
+- Creates a subscriber with `active` status immediately
+- No verification email required (single opt-in)
+- Subscriber is instantly added to the newsletter list
+- Duplicate emails are rejected with validation error
+- Unsubscribe token is generated for future unsubscribe requests
+
+**Unsubscribe Flow:**
+- All emails include unsubscribe link: `GET /newsletter/unsubscribe/{token}`
+- One-click unsubscribe without login required
+- Status changes to `unsubscribed`
+
+---
+
 ### API Response Format
 
 All successful responses include:
@@ -469,6 +528,8 @@ All successful responses include:
 - Records are ordered by their `order` field where applicable
 - Images return absolute URLs
 - Contact endpoint sends email notifications to admin
+- Newsletter subscription uses single opt-in (instant activation)
+- Unsubscribe functionality available via unique token
 - CORS enabled for all origins (configure for production)
 
 ## Project Structure
@@ -485,6 +546,9 @@ rania-admin-dashboard/
 │   │       │   ├── SocialMediaApiController.php
 │   │       │   ├── TestimonialApiController.php
 │   │       │   └── UmrahPackageApiController.php
+│   │       ├── NewsletterController.php    # Newsletter API & Web
+│   │       ├── Admin/            # Admin Controllers
+│   │       │   └── NewsletterSubscriberController.php
 │   │       └── Web/              # Web Controllers (Admin)
 │   ├── Models/                   # Eloquent Models
 │   └── Mail/                     # Email Classes

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\NewsletterSubscriberController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FAQController;
 use App\Http\Controllers\HomeContentController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\UmrahContentController;
@@ -18,6 +20,9 @@ Route::get('/', function () {
     }
     return redirect()->route('login');
 })->name('home');
+
+// Public Newsletter Routes
+Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -126,6 +131,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{faq}', [FAQController::class, 'update'])->name('update');
         Route::delete('/{faq}', [FAQController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [FAQController::class, 'updateOrder'])->name('reorder');
+    });
+
+    // Newsletter Subscribers Routes - Only accessible by super-admin and admin
+    Route::prefix('newsletter-subscribers')->name('newsletter-subscribers.')->group(function () {
+        Route::get('/', [NewsletterSubscriberController::class, 'index'])->name('index');
+        Route::delete('/{subscriber}', [NewsletterSubscriberController::class, 'destroy'])->name('destroy');
     });
 });
 
