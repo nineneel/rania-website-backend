@@ -42,5 +42,13 @@ class DatabaseSeeder extends Seeder
                 'role' => User::ROLE_EDITOR,
             ]
         );
+
+        // Seed content
+        $this->call([
+            HomeContentSeeder::class,
+            UmrahPackageSeeder::class,
+            FAQSeeder::class,
+            SocialMediaSeeder::class,
+        ]);
     }
 }
