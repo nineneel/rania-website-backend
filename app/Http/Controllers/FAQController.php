@@ -33,8 +33,7 @@ class FAQController extends Controller
 
         $faqs = FAQ::query()
             ->ordered()
-            ->latest()
-            ->paginate(15);
+            ->get();
 
         return Inertia::render('faqs/index', [
             'faqs' => $faqs,

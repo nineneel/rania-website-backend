@@ -8,12 +8,28 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type FAQ, type PaginatedData } from '@/types';
+import { type BreadcrumbItem, type FAQ } from '@/types';
+import {
+    DndContext,
+    DragEndEvent,
+    PointerSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    SortableContext,
+    arrayMove,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Head, Link, router } from '@inertiajs/react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Edit, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface FAQsIndexProps {
-    faqs: PaginatedData<FAQ>;
+    faqs: FAQ[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,10 +39,127 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+function SortableRow({
+    item,
+    onDelete,
+}: {
+    item: FAQ;
+    onDelete: () => void;
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+        useSortable({ id: item.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <tr
+            ref={setNodeRef}
+            style={style}
+            className="border-b last:border-0 hover:bg-muted/50"
+        >
+            <td className="p-3">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="flex cursor-grab items-center active:cursor-grabbing"
+                >
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                </div>
+            </td>
+            <td className="p-3 font-medium">
+                <div className="max-w-md">
+                    {item.question}
+                </div>
+            </td>
+            <td className="p-3 text-muted-foreground">
+                <div className="max-w-lg truncate">
+                    {item.answer}
+                </div>
+            </td>
+            <td className="p-3">
+                <Badge
+                    variant={
+                        item.is_active
+                            ? 'default'
+                            : 'secondary'
+                    }
+                >
+                    {item.is_active
+                        ? 'Active'
+                        : 'Inactive'}
+                </Badge>
+            </td>
+            <td className="p-3">
+                <div className="flex justify-end gap-2">
+                    <Link
+                        href={`/faqs/${item.id}/edit`}
+                    >
+                        <Button variant="ghost" size="sm">
+                            <Edit className="size-4" />
+                        </Button>
+                    </Link>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onDelete}
+                    >
+                        <Trash2 className="size-4" />
+                    </Button>
+                </div>
+            </td>
+        </tr>
+    );
+}
+
 export default function FAQsIndex({ faqs }: FAQsIndexProps) {
+    const [items, setItems] = useState(faqs);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        setItems((currentItems) => {
+            const oldIndex = currentItems.findIndex((item) => item.id === active.id);
+            const newIndex = currentItems.findIndex((item) => item.id === over.id);
+            const newItems = arrayMove(currentItems, oldIndex, newIndex);
+
+            // Update order in backend
+            const orderedItems = newItems.map((item, index) => ({
+                id: item.id,
+                order: index,
+            }));
+
+            router.post(
+                '/faqs/reorder',
+                { items: orderedItems },
+                { preserveScroll: true },
+            );
+
+            return newItems;
+        });
+    };
+
     const handleDelete = (faqId: number) => {
         if (confirm('Are you sure you want to delete this FAQ?')) {
-            router.delete(`/faqs/${faqId}`);
+            router.delete(`/faqs/${faqId}`, {
+                onSuccess: () => {
+                    setItems((currentItems) =>
+                        currentItems.filter((item) => item.id !== faqId),
+                    );
+                },
+            });
         }
     };
 
@@ -40,7 +173,7 @@ export default function FAQsIndex({ faqs }: FAQsIndexProps) {
                             <div>
                                 <CardTitle>FAQ Management</CardTitle>
                                 <CardDescription>
-                                    Manage frequently asked questions displayed on the Support & Help page.
+                                    Manage frequently asked questions displayed on the Support & Help page. Drag to reorder.
                                 </CardDescription>
                             </div>
                             <Link href="/faqs/create">
@@ -52,16 +185,21 @@ export default function FAQsIndex({ faqs }: FAQsIndexProps) {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        {faqs.data.length === 0 ? (
+                        {items.length === 0 ? (
                             <div className="py-8 text-center text-muted-foreground">
                                 No FAQs yet. Add your first one!
                             </div>
                         ) : (
-                            <>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead className="border-b">
                                             <tr className="text-sm text-muted-foreground">
+                                                <th className="w-12 p-3"></th>
                                                 <th className="p-3 text-left font-medium">
                                                     Question
                                                 </th>
@@ -76,102 +214,25 @@ export default function FAQsIndex({ faqs }: FAQsIndexProps) {
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {faqs.data.map((faq) => (
-                                                <tr
-                                                    key={faq.id}
-                                                    className="border-b last:border-0 hover:bg-muted/50"
-                                                >
-                                                    <td className="p-3 font-medium">
-                                                        <div className="max-w-md">
-                                                            {faq.question}
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-3 text-muted-foreground">
-                                                        <div className="max-w-lg truncate">
-                                                            {faq.answer}
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-3">
-                                                        <Badge
-                                                            variant={
-                                                                faq.is_active
-                                                                    ? 'default'
-                                                                    : 'secondary'
-                                                            }
-                                                        >
-                                                            {faq.is_active
-                                                                ? 'Active'
-                                                                : 'Inactive'}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="p-3">
-                                                        <div className="flex justify-end gap-2">
-                                                            <Link
-                                                                href={`/faqs/${faq.id}/edit`}
-                                                            >
-                                                                <Button variant="ghost" size="sm">
-                                                                    <Edit className="size-4" />
-                                                                </Button>
-                                                            </Link>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleDelete(faq.id)
-                                                                }
-                                                            >
-                                                                <Trash2 className="size-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
+                                        <SortableContext
+                                            items={items.map((item) => item.id)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            <tbody>
+                                                {items.map((item) => (
+                                                    <SortableRow
+                                                        key={item.id}
+                                                        item={item}
+                                                        onDelete={() =>
+                                                            handleDelete(item.id)
+                                                        }
+                                                    />
+                                                ))}
+                                            </tbody>
+                                        </SortableContext>
                                     </table>
                                 </div>
-
-                                {/* Pagination */}
-                                {faqs.last_page > 1 && (
-                                    <div className="mt-4 flex items-center justify-between border-t pt-4">
-                                        <div className="text-sm text-muted-foreground">
-                                            Showing {faqs.from} to {faqs.to} of{' '}
-                                            {faqs.total} FAQs
-                                        </div>
-                                        <div className="flex gap-1">
-                                            {faqs.links.map((link, index) => {
-                                                if (!link.url) {
-                                                    return (
-                                                        <Button
-                                                            key={index}
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            disabled
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: link.label,
-                                                            }}
-                                                        />
-                                                    );
-                                                }
-
-                                                return (
-                                                    <Link key={index} href={link.url}>
-                                                        <Button
-                                                            variant={
-                                                                link.active ? 'default' : 'ghost'
-                                                            }
-                                                            size="sm"
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: link.label,
-                                                            }}
-                                                        />
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                            </>
+                            </DndContext>
                         )}
                     </CardContent>
                 </Card>
