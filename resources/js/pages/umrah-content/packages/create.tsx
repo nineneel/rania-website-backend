@@ -42,6 +42,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function CreatePackage({ hotels, airlines }: CreatePackageProps) {
     const { data, setData, post, processing, errors } = useForm<UmrahPackageFormData>({
         title: '',
+        subtitle: '',
         description: '',
         image: null,
         departure: '',
@@ -106,6 +107,18 @@ export default function CreatePackage({ hotels, airlines }: CreatePackageProps) 
                                     required
                                 />
                                 {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="subtitle">Subtitle (Optional)</Label>
+                                <Input
+                                    id="subtitle"
+                                    type="text"
+                                    value={data.subtitle}
+                                    onChange={(e) => setData('subtitle', e.target.value)}
+                                    placeholder="e.g., Periode Low Season"
+                                />
+                                {errors.subtitle && <p className="text-sm text-destructive">{errors.subtitle}</p>}
                             </div>
 
                             <div className="space-y-2">

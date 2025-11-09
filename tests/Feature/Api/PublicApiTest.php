@@ -296,3 +296,24 @@ test('public api returns only active umrah packages', function () {
     $response->assertJsonFragment(['title' => 'Active Package']);
     $response->assertJsonMissing(['title' => 'Inactive Package']);
 });
+
+test('public api umrah packages include subtitle field', function () {
+    UmrahPackage::create([
+        'title' => 'Premium Package',
+        'subtitle' => 'Periode Low Season',
+        'description' => 'Description',
+        'price' => 1000,
+        'currency' => 'USD',
+        'duration' => '10 days',
+        'departure' => '2025-12-01',
+        'frequency' => 'monthly',
+        'image_path' => 'packages/premium.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $response = $this->getJson('/api/umrah-packages');
+
+    $response->assertOk();
+    $response->assertJsonFragment(['title' => 'Premium Package', 'subtitle' => 'Periode Low Season']);
+});

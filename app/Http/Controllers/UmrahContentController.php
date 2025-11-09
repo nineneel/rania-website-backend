@@ -358,6 +358,7 @@ class UmrahContentController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:500'],
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'departure' => ['required', 'string', 'max:255'],
@@ -435,6 +436,7 @@ class UmrahContentController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:500'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'departure' => ['required', 'string', 'max:255'],
