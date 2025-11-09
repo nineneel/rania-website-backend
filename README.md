@@ -368,7 +368,7 @@ Get all active Umrah packages with associated hotels and airlines.
       "image_url": "https://example.com/storage/packages/package1.jpg",
       "departure": "Jeddah",
       "duration": "14 days",
-      "frequency": "Weekly",
+      "departure_schedule": "Weekly",
       "price": "12500.00",
       "currency": "SAR",
       "hotels": [

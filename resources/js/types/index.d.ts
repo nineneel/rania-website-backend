@@ -139,7 +139,7 @@ export interface UmrahPackage {
     image_url: string;
     departure: string;
     duration: string;
-    frequency: string;
+    departure_schedule: string;
     price: string;
     currency: string;
     link: string | null;
@@ -173,7 +173,7 @@ export interface UmrahPackageFormData {
     image: File | null;
     departure: string;
     duration: string;
-    frequency: string;
+    departure_schedule: string;
     price: string;
     currency: string;
     link: string;

@@ -27,7 +27,7 @@ class UmrahPackageApiController extends Controller
                 'image_url' => $package->image_url,
                 'departure' => $package->departure,
                 'duration' => $package->duration,
-                'frequency' => $package->frequency,
+                'departure_schedule' => $package->departure_schedule,
                 'price' => $package->price,
                 'link' => $package->link,
                 'currency' => $package->currency,

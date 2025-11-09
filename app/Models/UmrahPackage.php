@@ -14,7 +14,7 @@ class UmrahPackage extends Model
         'image_path',
         'departure',
         'duration',
-        'frequency',
+        'departure_schedule',
         'price',
         'currency',
         'link',

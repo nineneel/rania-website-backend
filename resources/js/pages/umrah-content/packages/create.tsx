@@ -47,7 +47,7 @@ export default function CreatePackage({ hotels, airlines }: CreatePackageProps) 
         image: null,
         departure: '',
         duration: '',
-        frequency: '',
+        departure_schedule: '',
         price: '',
         currency: 'Rp',
         link: '',
@@ -173,16 +173,16 @@ export default function CreatePackage({ hotels, airlines }: CreatePackageProps) 
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="frequency">Frequency</Label>
+                                    <Label htmlFor="departure_schedule">Departure Schedule</Label>
                                     <Input
-                                        id="frequency"
+                                        id="departure_schedule"
                                         type="text"
-                                        value={data.frequency}
-                                        onChange={(e) => setData('frequency', e.target.value)}
+                                        value={data.departure_schedule}
+                                        onChange={(e) => setData('departure_schedule', e.target.value)}
                                         placeholder="e.g., Weekly"
                                         required
                                     />
-                                    {errors.frequency && <p className="text-sm text-destructive">{errors.frequency}</p>}
+                                    {errors.departure_schedule && <p className="text-sm text-destructive">{errors.departure_schedule}</p>}
                                 </div>
 
                                 <div className="space-y-2">
