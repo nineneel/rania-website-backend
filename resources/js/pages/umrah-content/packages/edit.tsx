@@ -17,6 +17,7 @@ import { type BreadcrumbItem, type UmrahPackage, type UmrahHotel, type UmrahAirl
 import { Head, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { FormEvent } from 'react';
+import { formatPrice } from '@/lib/utils';
 
 interface EditPackageProps {
     package: UmrahPackage;
@@ -194,14 +195,21 @@ export default function EditPackage({ package: pkg, hotels, airlines }: EditPack
                                             className="w-20"
                                             required
                                         />
-                                        <Input
-                                            id="price"
-                                            type="text"
-                                            value={data.price}
-                                            onChange={(e) => setData('price', e.target.value)}
-                                            className="flex-1"
-                                            required
-                                        />
+                                        <div className="flex-1 space-y-1">
+                                            <Input
+                                                id="price"
+                                                type="number"
+                                                step="0.01"
+                                                value={data.price}
+                                                onChange={(e) => setData('price', e.target.value)}
+                                                required
+                                            />
+                                            {data.price && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Preview: {data.currency} {formatPrice(data.price)}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                     {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
                                 </div>

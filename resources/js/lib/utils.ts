@@ -16,3 +16,19 @@ export function isSameUrl(
 export function resolveUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
+
+/**
+ * Formats a price using Intl.NumberFormat for Indonesian locale
+ * Automatically applies Indonesian format: 4.000.000,00
+ */
+export function formatPrice(price: string | number): string {
+    const amount = typeof price === 'string' ? parseFloat(price) : price;
+
+    if (isNaN(amount)) return '0,00';
+
+    return new Intl.NumberFormat('id-ID', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(amount);
+}
