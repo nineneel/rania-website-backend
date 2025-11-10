@@ -358,11 +358,12 @@ class UmrahContentController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:500'],
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'departure' => ['required', 'string', 'max:255'],
             'duration' => ['required', 'string', 'max:50'],
-            'frequency' => ['required', 'string', 'max:50'],
+            'departure_schedule' => ['required', 'string', 'max:50'],
             'price' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'max:10'],
             'link' => ['nullable', 'string', 'url', 'max:500'],
@@ -435,11 +436,12 @@ class UmrahContentController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:500'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'departure' => ['required', 'string', 'max:255'],
             'duration' => ['required', 'string', 'max:50'],
-            'frequency' => ['required', 'string', 'max:50'],
+            'departure_schedule' => ['required', 'string', 'max:50'],
             'price' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'max:10'],
             'link' => ['nullable', 'string', 'url', 'max:500'],

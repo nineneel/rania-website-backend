@@ -247,7 +247,7 @@ test('public api can retrieve umrah packages with pagination', function () {
             'currency' => 'USD',
             'duration' => "$i days",
             'departure' => '2025-12-01',
-            'frequency' => 'monthly',
+            'departure_schedule' => 'monthly',
             'image_path' => "packages/test$i.jpg",
             'is_active' => true,
             'order' => $i,
@@ -272,7 +272,7 @@ test('public api returns only active umrah packages', function () {
         'currency' => 'USD',
         'duration' => '10 days',
         'departure' => '2025-12-01',
-        'frequency' => 'monthly',
+        'departure_schedule' => 'monthly',
         'image_path' => 'packages/active.jpg',
         'is_active' => true,
         'order' => 1,
@@ -284,7 +284,7 @@ test('public api returns only active umrah packages', function () {
         'currency' => 'USD',
         'duration' => '15 days',
         'departure' => '2025-12-15',
-        'frequency' => 'weekly',
+        'departure_schedule' => 'weekly',
         'image_path' => 'packages/inactive.jpg',
         'is_active' => false,
         'order' => 2,
@@ -295,4 +295,25 @@ test('public api returns only active umrah packages', function () {
     $response->assertOk();
     $response->assertJsonFragment(['title' => 'Active Package']);
     $response->assertJsonMissing(['title' => 'Inactive Package']);
+});
+
+test('public api umrah packages include subtitle field', function () {
+    UmrahPackage::create([
+        'title' => 'Premium Package',
+        'subtitle' => 'Periode Low Season',
+        'description' => 'Description',
+        'price' => 1000,
+        'currency' => 'USD',
+        'duration' => '10 days',
+        'departure' => '2025-12-01',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/premium.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $response = $this->getJson('/api/umrah-packages');
+
+    $response->assertOk();
+    $response->assertJsonFragment(['title' => 'Premium Package', 'subtitle' => 'Periode Low Season']);
 });

@@ -17,6 +17,7 @@ import { type BreadcrumbItem, type UmrahPackage, type UmrahHotel, type UmrahAirl
 import { Head, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { FormEvent } from 'react';
+import { formatPrice } from '@/lib/utils';
 
 interface EditPackageProps {
     package: UmrahPackage;
@@ -42,11 +43,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function EditPackage({ package: pkg, hotels, airlines }: EditPackageProps) {
     const { data, setData, processing, errors } = useForm<UmrahPackageFormData>({
         title: pkg.title,
+        subtitle: pkg.subtitle || '',
         description: pkg.description,
         image: null,
         departure: pkg.departure,
         duration: pkg.duration,
-        frequency: pkg.frequency,
+        departure_schedule: pkg.departure_schedule,
         price: pkg.price.toString(),
         currency: pkg.currency,
         link: pkg.link || '',
@@ -112,6 +114,18 @@ export default function EditPackage({ package: pkg, hotels, airlines }: EditPack
                             </div>
 
                             <div className="space-y-2">
+                                <Label htmlFor="subtitle">Subtitle (Optional)</Label>
+                                <Input
+                                    id="subtitle"
+                                    type="text"
+                                    value={data.subtitle}
+                                    onChange={(e) => setData('subtitle', e.target.value)}
+                                    placeholder="e.g., Periode Low Season"
+                                />
+                                {errors.subtitle && <p className="text-sm text-destructive">{errors.subtitle}</p>}
+                            </div>
+
+                            <div className="space-y-2">
                                 <Label htmlFor="description">Description</Label>
                                 <Textarea
                                     id="description"
@@ -172,15 +186,15 @@ export default function EditPackage({ package: pkg, hotels, airlines }: EditPack
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="frequency">Frequency</Label>
+                                    <Label htmlFor="departure_schedule">Departure Schedule</Label>
                                     <Input
-                                        id="frequency"
+                                        id="departure_schedule"
                                         type="text"
-                                        value={data.frequency}
-                                        onChange={(e) => setData('frequency', e.target.value)}
+                                        value={data.departure_schedule}
+                                        onChange={(e) => setData('departure_schedule', e.target.value)}
                                         required
                                     />
-                                    {errors.frequency && <p className="text-sm text-destructive">{errors.frequency}</p>}
+                                    {errors.departure_schedule && <p className="text-sm text-destructive">{errors.departure_schedule}</p>}
                                 </div>
 
                                 <div className="space-y-2">
@@ -194,14 +208,21 @@ export default function EditPackage({ package: pkg, hotels, airlines }: EditPack
                                             className="w-20"
                                             required
                                         />
-                                        <Input
-                                            id="price"
-                                            type="text"
-                                            value={data.price}
-                                            onChange={(e) => setData('price', e.target.value)}
-                                            className="flex-1"
-                                            required
-                                        />
+                                        <div className="flex-1 space-y-1">
+                                            <Input
+                                                id="price"
+                                                type="number"
+                                                step="0.01"
+                                                value={data.price}
+                                                onChange={(e) => setData('price', e.target.value)}
+                                                required
+                                            />
+                                            {data.price && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Preview: {data.currency} {formatPrice(data.price)}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                     {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
                                 </div>

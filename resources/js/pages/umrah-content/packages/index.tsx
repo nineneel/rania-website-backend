@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type UmrahPackage } from '@/types';
+import { formatPrice } from '@/lib/utils';
 import {
     DndContext,
     DragEndEvent,
@@ -74,7 +75,7 @@ function SortableRow({ pkg, onDelete }: { pkg: UmrahPackage; onDelete: () => voi
             </td>
             <td className="p-3 font-medium">{pkg.title}</td>
             <td className="p-3 text-muted-foreground">{pkg.duration}</td>
-            <td className="p-3 font-medium">{pkg.currency} {pkg.price}</td>
+            <td className="p-3 font-medium">{pkg.currency} {formatPrice(pkg.price)}</td>
             <td className="p-3">
                 <Badge variant={pkg.is_active ? 'default' : 'secondary'}>
                     {pkg.is_active ? 'Active' : 'Inactive'}

@@ -133,12 +133,13 @@ export interface UmrahHotel {
 export interface UmrahPackage {
     id: number;
     title: string;
+    subtitle?: string;
     description: string;
     image_path: string;
     image_url: string;
     departure: string;
     duration: string;
-    frequency: string;
+    departure_schedule: string;
     price: string;
     currency: string;
     link: string | null;
@@ -167,11 +168,12 @@ export interface UmrahHotelFormData {
 
 export interface UmrahPackageFormData {
     title: string;
+    subtitle: string;
     description: string;
     image: File | null;
     departure: string;
     duration: string;
-    frequency: string;
+    departure_schedule: string;
     price: string;
     currency: string;
     link: string;

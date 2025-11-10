@@ -363,11 +363,12 @@ Get all active Umrah packages with associated hotels and airlines.
     {
       "id": 1,
       "title": "Premium Ramadan Package",
+      "subtitle": "Periode Low Season",
       "description": "5-star accommodation near Haram",
       "image_url": "https://example.com/storage/packages/package1.jpg",
       "departure": "Jeddah",
       "duration": "14 days",
-      "frequency": "Weekly",
+      "departure_schedule": "Weekly",
       "price": "12500.00",
       "currency": "SAR",
       "hotels": [

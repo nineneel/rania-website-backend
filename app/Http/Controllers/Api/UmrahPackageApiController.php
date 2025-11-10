@@ -22,11 +22,12 @@ class UmrahPackageApiController extends Controller
             return [
                 'id' => $package->id,
                 'title' => $package->title,
+                'subtitle' => $package->subtitle,
                 'description' => $package->description,
                 'image_url' => $package->image_url,
                 'departure' => $package->departure,
                 'duration' => $package->duration,
-                'frequency' => $package->frequency,
+                'departure_schedule' => $package->departure_schedule,
                 'price' => $package->price,
                 'link' => $package->link,
                 'currency' => $package->currency,
