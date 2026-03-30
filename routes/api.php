@@ -25,5 +25,6 @@ Route::get('/social-media', [SocialMediaApiController::class, 'index']);
 Route::get('/faqs', [FAQApiController::class, 'index']);
 Route::get('/testimonials', [TestimonialApiController::class, 'index']);
 Route::get('/umrah-packages', [UmrahPackageApiController::class, 'index']);
+Route::get('/umrah-packages/{slug}', [UmrahPackageApiController::class, 'show']);
 Route::post('/contact', [ContactApiController::class, 'store']);
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);

@@ -5,39 +5,39 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class UmrahHotel extends Model
+class UmrahItinerary extends Model
 {
     protected $appends = ['image_url'];
 
     protected $fillable = [
-        'name',
-        'stars',
+        'title',
         'location',
         'description',
         'image_path',
         'is_active',
+        'order',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
-            'stars' => 'integer',
+            'order' => 'integer',
         ];
     }
 
     /**
-     * Get the packages that include this hotel.
+     * Get packages that include this itinerary point.
      */
     public function packages(): BelongsToMany
     {
-        return $this->belongsToMany(UmrahPackage::class, 'umrah_package_hotel')
+        return $this->belongsToMany(UmrahPackage::class, 'umrah_package_itinerary')
             ->withPivot('order')
-            ->orderBy('umrah_package_hotel.order');
+            ->orderBy('umrah_package_itinerary.order');
     }
 
     /**
-     * Scope a query to only include active hotels.
+     * Scope a query to only include active itinerary points.
      */
     public function scopeActive($query)
     {
@@ -45,10 +45,18 @@ class UmrahHotel extends Model
     }
 
     /**
-     * Get the full URL for the hotel image.
+     * Scope a query to order itinerary points by their order field.
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order', 'asc');
+    }
+
+    /**
+     * Get the full URL for the itinerary image.
      */
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? asset('storage/' . $this->image_path) : null;
+        return $this->image_path ? asset('storage/'.$this->image_path) : null;
     }
 }

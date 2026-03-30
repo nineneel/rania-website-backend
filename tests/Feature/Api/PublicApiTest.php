@@ -1,11 +1,16 @@
 <?php
 
+use App\Models\Event;
 use App\Models\FAQ;
+use App\Models\HeroSlide;
 use App\Models\SocialMedia;
 use App\Models\Testimonial;
-use App\Models\HeroSlide;
-use App\Models\Event;
+use App\Models\UmrahAdditionalService;
+use App\Models\UmrahAirline;
+use App\Models\UmrahHotel;
+use App\Models\UmrahItinerary;
 use App\Models\UmrahPackage;
+use App\Models\UmrahTransportation;
 
 test('public api can retrieve active testimonials', function () {
     Testimonial::create([
@@ -242,6 +247,7 @@ test('public api can retrieve umrah packages with pagination', function () {
     for ($i = 1; $i <= 15; $i++) {
         UmrahPackage::create([
             'title' => "Package $i",
+            'slug' => "package-$i",
             'description' => "Description $i",
             'price' => 1000 * $i,
             'currency' => 'USD',
@@ -267,6 +273,7 @@ test('public api can retrieve umrah packages with pagination', function () {
 test('public api returns only active umrah packages', function () {
     UmrahPackage::create([
         'title' => 'Active Package',
+        'slug' => 'active-package',
         'description' => 'Description',
         'price' => 1000,
         'currency' => 'USD',
@@ -279,6 +286,7 @@ test('public api returns only active umrah packages', function () {
     ]);
     UmrahPackage::create([
         'title' => 'Inactive Package',
+        'slug' => 'inactive-package',
         'description' => 'Description',
         'price' => 2000,
         'currency' => 'USD',
@@ -300,6 +308,7 @@ test('public api returns only active umrah packages', function () {
 test('public api umrah packages include subtitle field', function () {
     UmrahPackage::create([
         'title' => 'Premium Package',
+        'slug' => 'premium-package',
         'subtitle' => 'Periode Low Season',
         'description' => 'Description',
         'price' => 1000,
@@ -316,4 +325,163 @@ test('public api umrah packages include subtitle field', function () {
 
     $response->assertOk();
     $response->assertJsonFragment(['title' => 'Premium Package', 'subtitle' => 'Periode Low Season']);
+});
+
+test('public api umrah package list includes slug field', function () {
+    UmrahPackage::create([
+        'title' => 'Slug Package',
+        'slug' => 'slug-package',
+        'description' => 'Description',
+        'price' => 1000,
+        'currency' => 'USD',
+        'duration' => '10 days',
+        'departure' => '2025-12-01',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/slug-package.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $response = $this->getJson('/api/umrah-packages');
+
+    $response->assertOk();
+    $response->assertJsonFragment(['slug' => 'slug-package']);
+});
+
+test('public api can retrieve umrah package details by slug', function () {
+    $hotel = UmrahHotel::create([
+        'name' => 'Hotel Test',
+        'stars' => 5,
+        'location' => 'Madinah',
+        'description' => 'Hotel Description',
+        'is_active' => true,
+    ]);
+
+    $airline = UmrahAirline::create([
+        'name' => 'Airline Test',
+        'logo_path' => 'umrah/airlines/logo.png',
+        'is_active' => true,
+    ]);
+
+    $transportation = UmrahTransportation::create([
+        'name' => 'Private Car',
+        'description' => 'Private transport',
+        'is_active' => true,
+        'order' => 0,
+    ]);
+
+    $itinerary = UmrahItinerary::create([
+        'title' => 'Masjid Nabawi',
+        'location' => 'Madinah',
+        'description' => 'Visit Masjid Nabawi',
+        'is_active' => true,
+        'order' => 0,
+    ]);
+
+    $globalAdditionalService = UmrahAdditionalService::create([
+        'title' => 'Airport Assistance',
+        'description' => 'Global service description',
+        'is_active' => true,
+        'order' => 0,
+    ]);
+
+    $package = UmrahPackage::create([
+        'title' => 'Detail Package',
+        'slug' => 'detail-package',
+        'description' => 'Description',
+        'price' => 1500,
+        'currency' => 'USD',
+        'duration' => '10 days',
+        'departure' => 'Jakarta',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/detail-package.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $package->hotels()->attach([$hotel->id => ['order' => 0]]);
+    $package->airlines()->attach([$airline->id]);
+    $package->transportations()->attach([$transportation->id => ['order' => 0]]);
+    $package->itineraries()->attach([$itinerary->id => ['order' => 0]]);
+    $package->services()->create([
+        'title' => 'Visa Processing',
+        'description' => 'Package service description',
+        'order' => 0,
+    ]);
+    $package->images()->createMany([
+        ['image_path' => 'umrah/packages/gallery/detail-1.jpg', 'order' => 0],
+        ['image_path' => 'umrah/packages/gallery/detail-2.jpg', 'order' => 1],
+        ['image_path' => 'umrah/packages/gallery/detail-3.jpg', 'order' => 2],
+        ['image_path' => 'umrah/packages/gallery/detail-4.jpg', 'order' => 3],
+    ]);
+
+    $response = $this->getJson('/api/umrah-packages/detail-package');
+
+    $response->assertOk();
+    $response->assertJsonFragment(['slug' => 'detail-package']);
+    $response->assertJsonFragment(['name' => 'Private Car']);
+    $response->assertJsonFragment(['title' => 'Masjid Nabawi']);
+    $response->assertJsonFragment(['title' => 'Airport Assistance']);
+    $response->assertJsonFragment(['title' => 'Visa Processing']);
+    $response->assertJsonCount(4, 'data.gallery_images');
+
+    expect($response->json('data.additional_services.0.id'))->toBe($globalAdditionalService->id);
+});
+
+test('public api detail uses package-level additional service overrides when available', function () {
+    $globalAdditionalService = UmrahAdditionalService::create([
+        'title' => 'Global Service',
+        'description' => 'Global service description',
+        'is_active' => true,
+        'order' => 0,
+    ]);
+
+    $overrideAdditionalService = UmrahAdditionalService::create([
+        'title' => 'Override Service',
+        'description' => 'Override service description',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $package = UmrahPackage::create([
+        'title' => 'Override Package',
+        'slug' => 'override-package',
+        'description' => 'Description',
+        'price' => 2000,
+        'currency' => 'USD',
+        'duration' => '12 days',
+        'departure' => 'Jakarta',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/override-package.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $package->additionalServices()->attach([$overrideAdditionalService->id => ['order' => 0]]);
+
+    $response = $this->getJson('/api/umrah-packages/override-package');
+
+    $response->assertOk();
+    $response->assertJsonFragment(['title' => 'Override Service']);
+    $response->assertJsonMissing(['title' => $globalAdditionalService->title]);
+});
+
+test('public api returns not found for inactive umrah package detail', function () {
+    UmrahPackage::create([
+        'title' => 'Inactive Detail Package',
+        'slug' => 'inactive-detail-package',
+        'description' => 'Description',
+        'price' => 1500,
+        'currency' => 'USD',
+        'duration' => '10 days',
+        'departure' => 'Jakarta',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/inactive-detail-package.jpg',
+        'is_active' => false,
+        'order' => 1,
+    ]);
+
+    $response = $this->getJson('/api/umrah-packages/inactive-detail-package');
+
+    $response->assertNotFound();
 });

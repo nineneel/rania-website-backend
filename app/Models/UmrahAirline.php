@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class UmrahAirline extends Model
 {
+    protected $appends = ['logo_url'];
+
     protected $fillable = [
         'name',
         'logo_path',

@@ -12,12 +12,12 @@ use App\Http\Controllers\UmrahContentController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
     }
+
     return redirect()->route('login');
 })->name('home');
 
@@ -79,6 +79,30 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/hotels/{hotel}/edit', [UmrahContentController::class, 'editHotel'])->name('hotels.edit');
         Route::put('/hotels/{hotel}', [UmrahContentController::class, 'updateHotel'])->name('hotels.update');
         Route::delete('/hotels/{hotel}', [UmrahContentController::class, 'destroyHotel'])->name('hotels.destroy');
+
+        // Transportations
+        Route::get('/transportations', [UmrahContentController::class, 'indexTransportations'])->name('transportations.index');
+        Route::get('/transportations/create', [UmrahContentController::class, 'createTransportation'])->name('transportations.create');
+        Route::post('/transportations', [UmrahContentController::class, 'storeTransportation'])->name('transportations.store');
+        Route::get('/transportations/{transportation}/edit', [UmrahContentController::class, 'editTransportation'])->name('transportations.edit');
+        Route::put('/transportations/{transportation}', [UmrahContentController::class, 'updateTransportation'])->name('transportations.update');
+        Route::delete('/transportations/{transportation}', [UmrahContentController::class, 'destroyTransportation'])->name('transportations.destroy');
+
+        // Itineraries
+        Route::get('/itineraries', [UmrahContentController::class, 'indexItineraries'])->name('itineraries.index');
+        Route::get('/itineraries/create', [UmrahContentController::class, 'createItinerary'])->name('itineraries.create');
+        Route::post('/itineraries', [UmrahContentController::class, 'storeItinerary'])->name('itineraries.store');
+        Route::get('/itineraries/{itinerary}/edit', [UmrahContentController::class, 'editItinerary'])->name('itineraries.edit');
+        Route::put('/itineraries/{itinerary}', [UmrahContentController::class, 'updateItinerary'])->name('itineraries.update');
+        Route::delete('/itineraries/{itinerary}', [UmrahContentController::class, 'destroyItinerary'])->name('itineraries.destroy');
+
+        // Additional services
+        Route::get('/additional-services', [UmrahContentController::class, 'indexAdditionalServices'])->name('additional-services.index');
+        Route::get('/additional-services/create', [UmrahContentController::class, 'createAdditionalService'])->name('additional-services.create');
+        Route::post('/additional-services', [UmrahContentController::class, 'storeAdditionalService'])->name('additional-services.store');
+        Route::get('/additional-services/{additionalService}/edit', [UmrahContentController::class, 'editAdditionalService'])->name('additional-services.edit');
+        Route::put('/additional-services/{additionalService}', [UmrahContentController::class, 'updateAdditionalService'])->name('additional-services.update');
+        Route::delete('/additional-services/{additionalService}', [UmrahContentController::class, 'destroyAdditionalService'])->name('additional-services.destroy');
 
         // Packages - redirect to main index for backward compatibility
         Route::get('/packages', function () {

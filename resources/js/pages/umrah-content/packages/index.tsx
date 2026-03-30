@@ -26,7 +26,17 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, Edit, GripVertical, Plane, Plus, Trash2 } from 'lucide-react';
+import {
+    Building2,
+    Car,
+    Edit,
+    GripVertical,
+    Map,
+    Plane,
+    Plus,
+    Sparkles,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface PackagesIndexProps {
@@ -151,8 +161,8 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 {/* Navigation buttons for Hotels and Airlines */}
                 {showNavigation && (
-                    <div className="flex gap-3">
-                        <Link href="/umrah-content/hotels" className="flex-1">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+                        <Link href="/umrah-content/hotels">
                             <Button variant="outline" className="w-full h-auto py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -167,7 +177,7 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                                 </div>
                             </Button>
                         </Link>
-                        <Link href="/umrah-content/airlines" className="flex-1">
+                        <Link href="/umrah-content/airlines">
                             <Button variant="outline" className="w-full h-auto py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -177,6 +187,51 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                                         <div className="font-semibold">Airlines</div>
                                         <div className="text-xs text-muted-foreground">
                                             Manage airlines
+                                        </div>
+                                    </div>
+                                </div>
+                            </Button>
+                        </Link>
+                        <Link href="/umrah-content/transportations">
+                            <Button variant="outline" className="w-full h-auto py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                        <Car className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Transportations</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Manage transportations
+                                        </div>
+                                    </div>
+                                </div>
+                            </Button>
+                        </Link>
+                        <Link href="/umrah-content/itineraries">
+                            <Button variant="outline" className="w-full h-auto py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                        <Map className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Itineraries</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Manage itinerary points
+                                        </div>
+                                    </div>
+                                </div>
+                            </Button>
+                        </Link>
+                        <Link href="/umrah-content/additional-services">
+                            <Button variant="outline" className="w-full h-auto py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                        <Sparkles className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Additional Services</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Manage global services
                                         </div>
                                     </div>
                                 </div>

@@ -188,7 +188,8 @@ The application provides REST API endpoints for the public website to consume.
 | GET | `/api/social-media` | Get active social media links | ❌ |
 | GET | `/api/faqs` | Get active FAQs | ❌ |
 | GET | `/api/testimonials` | Get active testimonials | ✅ |
-| GET | `/api/umrah-packages` | Get packages with hotels & airlines | ❌ |
+| GET | `/api/umrah-packages` | Get active packages list with hotels & airlines summary | ✅ |
+| GET | `/api/umrah-packages/{slug}` | Get one active package detail by slug | ❌ |
 | POST | `/api/contact` | Submit contact form | N/A |
 | POST | `/api/newsletter/subscribe` | Subscribe to newsletter | N/A |
 
@@ -351,7 +352,9 @@ curl "https://your-domain.com/api/testimonials?per_page=10&page=1"
 
 ### Umrah Packages
 
-Get all active Umrah packages with associated hotels and airlines.
+#### 1) Package List
+
+Get active Umrah packages with hotels and airlines for listing cards.
 
 **Endpoint:** `GET /api/umrah-packages`
 
@@ -363,6 +366,7 @@ Get all active Umrah packages with associated hotels and airlines.
     {
       "id": 1,
       "title": "Premium Ramadan Package",
+      "slug": "premium-ramadan-package",
       "subtitle": "Periode Low Season",
       "description": "5-star accommodation near Haram",
       "image_url": "https://example.com/storage/packages/package1.jpg",
@@ -390,9 +394,111 @@ Get all active Umrah packages with associated hotels and airlines.
         }
       ]
     }
-  ]
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 2,
+    "per_page": 10,
+    "total": 12
+  },
+  "links": {
+    "first": "https://your-domain.com/api/umrah-packages?page=1",
+    "last": "https://your-domain.com/api/umrah-packages?page=2",
+    "prev": null,
+    "next": "https://your-domain.com/api/umrah-packages?page=2"
+  }
 }
 ```
+
+#### 2) Package Detail
+
+Get a single active Umrah package detail by `slug`.
+
+**Endpoint:** `GET /api/umrah-packages/{slug}`
+
+**Example:**
+```bash
+curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Royal Hilton Signature",
+    "slug": "royal-hilton-signature",
+    "subtitle": "Periode Low Season",
+    "description": "Discover Your Sacred Umrah Journey",
+    "image_url": "https://example.com/storage/umrah/packages/example.jpg",
+    "departure": "Soekarno-Hatta airport (CGK) Jakarta",
+    "duration": "9 Days",
+    "departure_schedule": "Weekly",
+    "price": "54800000.00",
+    "currency": "Rp",
+    "link": "https://example.com/package-details",
+    "hotels": [
+      {
+        "id": 10,
+        "name": "Hilton Makkah",
+        "stars": 5,
+        "location": "Makkah",
+        "description": "Near Haram",
+        "image_url": "https://example.com/storage/umrah/hotels/hotel.jpg",
+        "order": 0
+      }
+    ],
+    "airlines": [
+      {
+        "id": 1,
+        "name": "Saudia Airlines",
+        "logo_url": "https://example.com/storage/umrah/airlines/saudia.png"
+      }
+    ],
+    "transportations": [
+      {
+        "id": 3,
+        "name": "Private Car",
+        "description": "Comfortable airport-hotel transfer",
+        "icon_url": "https://example.com/storage/umrah/transportations/private-car.png",
+        "order": 0
+      }
+    ],
+    "itineraries": [
+      {
+        "id": 5,
+        "title": "Masjid Nabawi",
+        "location": "Madinah",
+        "description": "Daily prayer and guided visit",
+        "image_url": "https://example.com/storage/umrah/itineraries/nabawi.jpg",
+        "order": 0
+      }
+    ],
+    "additional_services": [
+      {
+        "id": 7,
+        "title": "Airport Assistance",
+        "description": "Assistance during arrival and departure process",
+        "image_url": "https://example.com/storage/umrah/additional-services/airport.jpg",
+        "order": 0
+      }
+    ],
+    "package_services": [
+      {
+        "id": 21,
+        "title": "Visa Processing",
+        "description": "Handled by our team",
+        "order": 0
+      }
+    ]
+  }
+}
+```
+
+**Additional Services behavior:**
+- By default, `additional_services` comes from the global active services list.
+- If package-specific overrides are configured in `umrah_package_additional_service`, the detail endpoint returns those overrides instead.
 
 ---
 
@@ -528,6 +634,9 @@ All successful responses include:
 - All GET endpoints return only active records
 - Records are ordered by their `order` field where applicable
 - Images return absolute URLs
+- `/api/umrah-packages` is paginated and includes `meta` + `links`
+- `/api/umrah-packages/{slug}` returns complete package detail sections
+- Cancellation policy is currently frontend-managed (not part of Umrah API payload)
 - Contact endpoint sends email notifications to admin
 - Newsletter subscription uses single opt-in (instant activation)
 - Unsubscribe functionality available via unique token

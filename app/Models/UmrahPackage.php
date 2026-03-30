@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UmrahPackage extends Model
 {
     protected $fillable = [
         'title',
+        'slug',
         'subtitle',
         'description',
         'image_path',
@@ -50,6 +52,54 @@ class UmrahPackage extends Model
     }
 
     /**
+     * Get the transportation options available for this package.
+     */
+    public function transportations(): BelongsToMany
+    {
+        return $this->belongsToMany(UmrahTransportation::class, 'umrah_package_transportation')
+            ->withPivot('order')
+            ->orderBy('umrah_package_transportation.order');
+    }
+
+    /**
+     * Get itinerary points for this package.
+     */
+    public function itineraries(): BelongsToMany
+    {
+        return $this->belongsToMany(UmrahItinerary::class, 'umrah_package_itinerary')
+            ->withPivot('order')
+            ->orderBy('umrah_package_itinerary.order');
+    }
+
+    /**
+     * Get package-level additional service overrides.
+     */
+    public function additionalServices(): BelongsToMany
+    {
+        return $this->belongsToMany(UmrahAdditionalService::class, 'umrah_package_additional_service')
+            ->withPivot('order')
+            ->orderBy('umrah_package_additional_service.order');
+    }
+
+    /**
+     * Get package services rows.
+     */
+    public function services(): HasMany
+    {
+        return $this->hasMany(UmrahPackageService::class, 'umrah_package_id')
+            ->orderBy('order');
+    }
+
+    /**
+     * Get package detail gallery images.
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(UmrahPackageImage::class, 'umrah_package_id')
+            ->orderBy('order');
+    }
+
+    /**
      * Scope a query to only include active packages.
      */
     public function scopeActive($query)
@@ -70,6 +120,6 @@ class UmrahPackage extends Model
      */
     public function getImageUrlAttribute(): string
     {
-        return asset('storage/' . $this->image_path);
+        return asset('storage/'.$this->image_path);
     }
 }

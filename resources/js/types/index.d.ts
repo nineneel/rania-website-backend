@@ -133,6 +133,7 @@ export interface UmrahHotel {
 export interface UmrahPackage {
     id: number;
     title: string;
+    slug: string;
     subtitle?: string;
     description: string;
     image_path: string;
@@ -147,8 +148,71 @@ export interface UmrahPackage {
     order: number;
     hotels: UmrahHotel[];
     airlines: UmrahAirline[];
+    transportations?: UmrahTransportation[];
+    itineraries?: UmrahItinerary[];
+    additional_services?: UmrahAdditionalService[];
+    services?: UmrahPackageService[];
+    package_services?: UmrahPackageService[];
+    images?: UmrahPackageImage[];
     created_at: string;
     updated_at: string;
+}
+
+export interface UmrahPackageImage {
+    id: number;
+    image_path?: string;
+    image_url?: string;
+    order: number;
+}
+
+export interface UmrahTransportation {
+    id: number;
+    name: string;
+    description?: string;
+    icon_path?: string;
+    icon_url?: string;
+    is_active: boolean;
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahItinerary {
+    id: number;
+    title: string;
+    location?: string;
+    description: string;
+    image_path?: string;
+    image_url?: string;
+    is_active: boolean;
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahAdditionalService {
+    id: number;
+    title: string;
+    description: string;
+    image_path?: string;
+    image_url?: string;
+    is_active: boolean;
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahPackageService {
+    id: number;
+    title: string;
+    description?: string;
+    is_included: boolean;
+    order: number;
+}
+
+export interface UmrahPackageServiceFormData {
+    title: string;
+    is_included: boolean;
 }
 
 export interface UmrahAirlineFormData {
@@ -168,9 +232,12 @@ export interface UmrahHotelFormData {
 
 export interface UmrahPackageFormData {
     title: string;
+    slug: string;
     subtitle: string;
     description: string;
     image: File | null;
+    gallery_images: File[];
+    existing_gallery_image_ids: number[];
     departure: string;
     duration: string;
     departure_schedule: string;
@@ -180,6 +247,31 @@ export interface UmrahPackageFormData {
     is_active: boolean;
     hotel_ids: number[];
     airline_ids: number[];
+    transportation_ids: number[];
+    itinerary_ids: number[];
+    package_services: UmrahPackageServiceFormData[];
+}
+
+export interface UmrahTransportationFormData {
+    name: string;
+    description: string;
+    icon: File | null;
+    is_active: boolean;
+}
+
+export interface UmrahItineraryFormData {
+    title: string;
+    location: string;
+    description: string;
+    image: File | null;
+    is_active: boolean;
+}
+
+export interface UmrahAdditionalServiceFormData {
+    title: string;
+    description: string;
+    image: File | null;
+    is_active: boolean;
 }
 
 // Contact Message Types

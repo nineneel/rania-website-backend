@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vendor/bin/pint --dirty)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

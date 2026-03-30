@@ -80,6 +80,7 @@ class UmrahPackageSeeder extends Seeder
         $packages = [
             [
                 'title' => 'Umrah Regular',
+                'slug' => 'umrah-regular-5-star',
                 'description' => 'Discover Your Sacred Umrah Journey',
                 'image_path' => 'packages/umrah-regular-5star.jpg',
                 'departure' => 'Soekarno-Hatta airport (CGK) Jakarta',
@@ -94,6 +95,7 @@ class UmrahPackageSeeder extends Seeder
             ],
             [
                 'title' => 'Umrah Regular',
+                'slug' => 'umrah-regular-4-star',
                 'description' => 'Discover Your Sacred Umrah Journey',
                 'image_path' => 'packages/umrah-regular-4star.jpg',
                 'departure' => 'Soekarno-Hatta airport (CGK) Jakarta',
@@ -108,6 +110,7 @@ class UmrahPackageSeeder extends Seeder
             ],
             [
                 'title' => 'Umrah Dubai',
+                'slug' => 'umrah-dubai-5-star',
                 'description' => 'Discover Your Sacred Umrah Journey and Amazing Dubai',
                 'image_path' => 'packages/umrah-dubai-5star.jpg',
                 'departure' => 'Soekarno-Hatta airport (CGK) Jakarta',
@@ -122,6 +125,7 @@ class UmrahPackageSeeder extends Seeder
             ],
             [
                 'title' => 'Umrah Dubai',
+                'slug' => 'umrah-dubai-4-star',
                 'description' => 'Discover Your Sacred Umrah Journey and Amazing Dubai',
                 'image_path' => 'packages/umrah-dubai-4star.jpg',
                 'departure' => 'Soekarno-Hatta airport (CGK) Jakarta',
@@ -136,6 +140,7 @@ class UmrahPackageSeeder extends Seeder
             ],
             [
                 'title' => 'Umrah Turkiye',
+                'slug' => 'umrah-turkiye-5-star',
                 'description' => 'Discover Your Sacred Umrah and Wonderful Turkiye',
                 'image_path' => 'packages/umrah-turkiye-5star.jpg',
                 'departure' => 'Soekarno-Hatta airport (CGK) Jakarta',
@@ -150,6 +155,7 @@ class UmrahPackageSeeder extends Seeder
             ],
             [
                 'title' => 'Umrah Turkiye',
+                'slug' => 'umrah-turkiye-4-star',
                 'description' => 'Discover Your Sacred Umrah and Wonderful Turkiye',
                 'image_path' => 'packages/umrah-turkiye-4star.jpg',
                 'departure' => 'Soekarno-Hatta airport (CGK) Jakarta',
