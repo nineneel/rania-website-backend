@@ -17,6 +17,7 @@ import { cn, formatPrice } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import {
     type BreadcrumbItem,
+    type UmrahAdditionalService,
     type UmrahAirline,
     type UmrahHotel,
     type UmrahItinerary,
@@ -45,6 +46,7 @@ interface EditPackageProps {
     airlines: UmrahAirline[];
     transportations: UmrahTransportation[];
     itineraries: UmrahItinerary[];
+    additionalServices: UmrahAdditionalService[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -77,6 +79,7 @@ export default function EditPackage({
     airlines,
     transportations,
     itineraries,
+    additionalServices,
 }: EditPackageProps) {
     const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
@@ -99,6 +102,7 @@ export default function EditPackage({
         airline_ids: pkg.airlines?.map((a) => a.id) || [],
         transportation_ids: pkg.transportations?.map((t) => t.id) || [],
         itinerary_ids: pkg.itineraries?.map((i) => i.id) || [],
+        additional_service_ids: pkg.additional_services?.map((s) => s.id) || [],
         package_services:
             pkg.services && pkg.services.length > 0
                 ? pkg.services.map((service) => ({
@@ -177,6 +181,15 @@ export default function EditPackage({
             data.itinerary_ids.includes(itineraryId)
                 ? data.itinerary_ids.filter((id) => id !== itineraryId)
                 : [...data.itinerary_ids, itineraryId],
+        );
+    };
+
+    const toggleAdditionalService = (serviceId: number) => {
+        setData(
+            'additional_service_ids',
+            data.additional_service_ids.includes(serviceId)
+                ? data.additional_service_ids.filter((id) => id !== serviceId)
+                : [...data.additional_service_ids, serviceId],
         );
     };
 
@@ -598,6 +611,47 @@ export default function EditPackage({
                                                             <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                                                                 <MapPin className="size-3 shrink-0" />
                                                                 {itinerary.location}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </SelectionCard>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Select Additional Services</Label>
+                                {additionalServices.length === 0 ? (
+                                    <p className="rounded-lg border p-4 text-sm text-muted-foreground">
+                                        No additional services available.
+                                    </p>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        {additionalServices.map((service) => (
+                                            <SelectionCard
+                                                key={service.id}
+                                                selected={data.additional_service_ids.includes(service.id)}
+                                                onToggle={() => toggleAdditionalService(service.id)}
+                                            >
+                                                <div className="flex gap-3">
+                                                    {service.image_url ? (
+                                                        <img
+                                                            src={service.image_url}
+                                                            alt={service.title}
+                                                            className="size-12 shrink-0 rounded-md object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
+                                                            <Star className="size-5 text-muted-foreground" />
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="truncate pr-6 text-sm font-medium">{service.title}</p>
+                                                        {service.description && (
+                                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                                                                {service.description}
                                                             </p>
                                                         )}
                                                     </div>

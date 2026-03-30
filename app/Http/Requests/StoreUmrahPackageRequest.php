@@ -46,6 +46,8 @@ class StoreUmrahPackageRequest extends FormRequest
             'transportation_ids.*' => ['exists:umrah_transportations,id'],
             'itinerary_ids' => ['nullable', 'array'],
             'itinerary_ids.*' => ['exists:umrah_itineraries,id'],
+            'additional_service_ids' => ['nullable', 'array'],
+            'additional_service_ids.*' => ['exists:umrah_additional_services,id'],
             'package_services' => ['nullable', 'array'],
             'package_services.*.title' => ['required', 'string', 'max:255'],
             'package_services.*.description' => ['nullable', 'string'],

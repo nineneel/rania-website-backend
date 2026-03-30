@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class UmrahAdditionalService extends Model
 {
+    protected $appends = ['image_url'];
+
     protected $fillable = [
         'title',
         'description',

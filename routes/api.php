@@ -26,5 +26,6 @@ Route::get('/faqs', [FAQApiController::class, 'index']);
 Route::get('/testimonials', [TestimonialApiController::class, 'index']);
 Route::get('/umrah-packages', [UmrahPackageApiController::class, 'index']);
 Route::get('/umrah-packages/{slug}', [UmrahPackageApiController::class, 'show']);
+Route::get('/umrah-packages/{slug}/other-additional-services', [UmrahPackageApiController::class, 'otherAdditionalServices']);
 Route::post('/contact', [ContactApiController::class, 'store']);
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);

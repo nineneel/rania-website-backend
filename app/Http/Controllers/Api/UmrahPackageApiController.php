@@ -15,10 +15,17 @@ class UmrahPackageApiController extends Controller
     {
         $packages = UmrahPackage::active()
             ->ordered()
-            ->with(['hotels', 'airlines'])
+            ->with(['hotels', 'airlines', 'additionalServices'])
             ->paginate(10);
 
-        $data = $packages->map(function (UmrahPackage $package) {
+        $allAdditionalServices = UmrahAdditionalService::active()->ordered()->get();
+
+        $data = $packages->map(function (UmrahPackage $package) use ($allAdditionalServices) {
+            $hasOverrides = $package->additionalServices->isNotEmpty();
+            $additionalServices = $hasOverrides
+                ? $package->additionalServices->where('is_active', true)->values()
+                : $allAdditionalServices;
+
             return [
                 'id' => $package->id,
                 'title' => $package->title,
@@ -48,6 +55,15 @@ class UmrahPackageApiController extends Controller
                         'id' => $airline->id,
                         'name' => $airline->name,
                         'logo_url' => $airline->logo_url,
+                    ];
+                }),
+                'additional_services' => $additionalServices->values()->map(function ($service, $index) {
+                    return [
+                        'id' => $service->id,
+                        'title' => $service->title,
+                        'description' => $service->description,
+                        'image_url' => $service->image_url,
+                        'order' => $service->pivot->order ?? $service->order ?? $index,
                     ];
                 }),
             ];
@@ -172,6 +188,50 @@ class UmrahPackageApiController extends Controller
                         'order' => $image->order,
                     ];
                 }),
+            ],
+        ]);
+    }
+
+    /**
+     * Get additional services that are NOT included in a specific package.
+     */
+    public function otherAdditionalServices(string $slug)
+    {
+        $package = UmrahPackage::active()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $includedIds = $package->additionalServices()->pluck('umrah_additional_services.id')->all();
+
+        $others = UmrahAdditionalService::active()
+            ->ordered()
+            ->whereNotIn('id', $includedIds)
+            ->paginate(12);
+
+        $data = $others->map(function ($service) {
+            return [
+                'id' => $service->id,
+                'title' => $service->title,
+                'description' => $service->description,
+                'image_url' => $service->image_url,
+                'order' => $service->order,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'meta' => [
+                'current_page' => $others->currentPage(),
+                'last_page' => $others->lastPage(),
+                'per_page' => $others->perPage(),
+                'total' => $others->total(),
+            ],
+            'links' => [
+                'first' => $others->url(1),
+                'last' => $others->url($others->lastPage()),
+                'prev' => $others->previousPageUrl(),
+                'next' => $others->nextPageUrl(),
             ],
         ]);
     }

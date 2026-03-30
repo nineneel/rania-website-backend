@@ -249,6 +249,7 @@ export interface UmrahPackageFormData {
     airline_ids: number[];
     transportation_ids: number[];
     itinerary_ids: number[];
+    additional_service_ids: number[];
     package_services: UmrahPackageServiceFormData[];
 }
 

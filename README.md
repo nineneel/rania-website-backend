@@ -188,8 +188,9 @@ The application provides REST API endpoints for the public website to consume.
 | GET | `/api/social-media` | Get active social media links | ❌ |
 | GET | `/api/faqs` | Get active FAQs | ❌ |
 | GET | `/api/testimonials` | Get active testimonials | ✅ |
-| GET | `/api/umrah-packages` | Get active packages list with hotels & airlines summary | ✅ |
+| GET | `/api/umrah-packages` | Get active packages list with hotels, airlines & additional services | ✅ |
 | GET | `/api/umrah-packages/{slug}` | Get one active package detail by slug | ❌ |
+| GET | `/api/umrah-packages/{slug}/other-additional-services` | Get additional services not included in a package | ✅ |
 | POST | `/api/contact` | Submit contact form | N/A |
 | POST | `/api/newsletter/subscribe` | Subscribe to newsletter | N/A |
 
@@ -354,7 +355,7 @@ curl "https://your-domain.com/api/testimonials?per_page=10&page=1"
 
 #### 1) Package List
 
-Get active Umrah packages with hotels and airlines for listing cards.
+Get active Umrah packages with hotels, airlines, and additional services for listing cards.
 
 **Endpoint:** `GET /api/umrah-packages`
 
@@ -391,6 +392,15 @@ Get active Umrah packages with hotels and airlines for listing cards.
           "id": 1,
           "name": "Saudia Airlines",
           "logo_url": "https://example.com/storage/airlines/saudia.png"
+        }
+      ],
+      "additional_services": [
+        {
+          "id": 7,
+          "title": "Airport Assistance",
+          "description": "Assistance during arrival and departure",
+          "image_url": "https://example.com/storage/umrah/additional-services/airport.jpg",
+          "order": 0
         }
       ]
     }
@@ -499,6 +509,58 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
 **Additional Services behavior:**
 - By default, `additional_services` comes from the global active services list.
 - If package-specific overrides are configured in `umrah_package_additional_service`, the detail endpoint returns those overrides instead.
+
+#### 3) Other Additional Services
+
+Get all active additional services that are **not** included in a specific package. Use this to display "Other available add-ons" below the package's selected services.
+
+**Endpoint:** `GET /api/umrah-packages/{slug}/other-additional-services`
+
+**Example:**
+```bash
+curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature/other-additional-services"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 12,
+      "title": "Zam Zam Water Delivery",
+      "description": "5 liters of Zam Zam water delivered to your home",
+      "image_url": "https://example.com/storage/umrah/additional-services/zamzam.jpg",
+      "order": 3
+    },
+    {
+      "id": 15,
+      "title": "Photography Service",
+      "description": "Professional photography during Umrah journey",
+      "image_url": "https://example.com/storage/umrah/additional-services/photo.jpg",
+      "order": 5
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 12,
+    "total": 2
+  },
+  "links": {
+    "first": "https://your-domain.com/api/umrah-packages/royal-hilton-signature/other-additional-services?page=1",
+    "last": "https://your-domain.com/api/umrah-packages/royal-hilton-signature/other-additional-services?page=1",
+    "prev": null,
+    "next": null
+  }
+}
+```
+
+**Behavior:**
+- Returns only active additional services that are **excluded** from the package's selected add-ons.
+- Paginated (12 per page) to support future growth of add-on services.
+- If the package has no selected additional services, all active services are returned.
+- Returns 404 if the package slug is invalid or the package is inactive.
 
 ---
 
@@ -634,8 +696,9 @@ All successful responses include:
 - All GET endpoints return only active records
 - Records are ordered by their `order` field where applicable
 - Images return absolute URLs
-- `/api/umrah-packages` is paginated and includes `meta` + `links`
+- `/api/umrah-packages` is paginated and includes `meta` + `links`, with hotels, airlines, and additional services
 - `/api/umrah-packages/{slug}` returns complete package detail sections
+- `/api/umrah-packages/{slug}/other-additional-services` returns paginated add-ons not included in the package
 - Cancellation policy is currently frontend-managed (not part of Umrah API payload)
 - Contact endpoint sends email notifications to admin
 - Newsletter subscription uses single opt-in (instant activation)

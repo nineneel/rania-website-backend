@@ -682,12 +682,14 @@ class UmrahContentController extends Controller
         $airlines = UmrahAirline::active()->orderBy('name')->get();
         $transportations = UmrahTransportation::active()->ordered()->get();
         $itineraries = UmrahItinerary::active()->ordered()->get();
+        $additionalServices = UmrahAdditionalService::active()->ordered()->get();
 
         return Inertia::render('umrah-content/packages/create', [
             'hotels' => $hotels,
             'airlines' => $airlines,
             'transportations' => $transportations,
             'itineraries' => $itineraries,
+            'additionalServices' => $additionalServices,
         ]);
     }
 
@@ -702,6 +704,7 @@ class UmrahContentController extends Controller
         $airlineIds = $validated['airline_ids'] ?? [];
         $transportationIds = $validated['transportation_ids'] ?? [];
         $itineraryIds = $validated['itinerary_ids'] ?? [];
+        $additionalServiceIds = $validated['additional_service_ids'] ?? [];
         $packageServices = $validated['package_services'] ?? [];
         $galleryImages = $request->file('gallery_images', []);
 
@@ -712,6 +715,7 @@ class UmrahContentController extends Controller
             $validated['airline_ids'],
             $validated['transportation_ids'],
             $validated['itinerary_ids'],
+            $validated['additional_service_ids'],
             $validated['package_services']
         );
 
@@ -759,6 +763,15 @@ class UmrahContentController extends Controller
             $package->itineraries()->attach($itineraryData);
         }
 
+        // Attach additional services with order
+        if (is_array($additionalServiceIds)) {
+            $additionalServiceData = [];
+            foreach ($additionalServiceIds as $index => $serviceId) {
+                $additionalServiceData[$serviceId] = ['order' => $index];
+            }
+            $package->additionalServices()->attach($additionalServiceData);
+        }
+
         // Save package services
         if (is_array($packageServices)) {
             $serviceRows = [];
@@ -791,12 +804,13 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $package->load(['hotels', 'airlines', 'transportations', 'itineraries', 'services', 'images']);
+        $package->load(['hotels', 'airlines', 'transportations', 'itineraries', 'additionalServices', 'services', 'images']);
 
         $hotels = UmrahHotel::active()->orderBy('name')->get();
         $airlines = UmrahAirline::active()->orderBy('name')->get();
         $transportations = UmrahTransportation::active()->ordered()->get();
         $itineraries = UmrahItinerary::active()->ordered()->get();
+        $additionalServices = UmrahAdditionalService::active()->ordered()->get();
 
         return Inertia::render('umrah-content/packages/edit', [
             'package' => $package,
@@ -804,6 +818,7 @@ class UmrahContentController extends Controller
             'airlines' => $airlines,
             'transportations' => $transportations,
             'itineraries' => $itineraries,
+            'additionalServices' => $additionalServices,
         ]);
     }
 
@@ -818,6 +833,7 @@ class UmrahContentController extends Controller
         $airlineIds = $validated['airline_ids'] ?? [];
         $transportationIds = $validated['transportation_ids'] ?? [];
         $itineraryIds = $validated['itinerary_ids'] ?? [];
+        $additionalServiceIds = $validated['additional_service_ids'] ?? [];
         $packageServices = $validated['package_services'] ?? [];
         $existingGalleryImageIds = $validated['existing_gallery_image_ids'] ?? [];
         $galleryImages = $request->file('gallery_images', []);
@@ -830,6 +846,7 @@ class UmrahContentController extends Controller
             $validated['airline_ids'],
             $validated['transportation_ids'],
             $validated['itinerary_ids'],
+            $validated['additional_service_ids'],
             $validated['package_services']
         );
 
@@ -869,6 +886,13 @@ class UmrahContentController extends Controller
             $itineraryData[$itineraryId] = ['order' => $index];
         }
         $package->itineraries()->sync($itineraryData);
+
+        // Sync additional services with order
+        $additionalServiceData = [];
+        foreach ($additionalServiceIds as $index => $serviceId) {
+            $additionalServiceData[$serviceId] = ['order' => $index];
+        }
+        $package->additionalServices()->sync($additionalServiceData);
 
         // Replace package services
         $package->services()->delete();
