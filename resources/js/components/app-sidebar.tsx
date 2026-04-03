@@ -13,7 +13,7 @@ import { dashboard } from '@/routes';
 import usersRoute from '@/routes/users';
 import { type NavGroup, type SharedData } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { Home, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle, HelpCircle, Mail } from 'lucide-react';
+import { BarChart3, Home, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle, HelpCircle, Mail } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const getMainNavGroups = (userRole: string): NavGroup[] => {
@@ -75,6 +75,17 @@ const getMainNavGroups = (userRole: string): NavGroup[] => {
                     title: 'Newsletter Subscribers',
                     href: { url: '/newsletter-subscribers', method: 'get' },
                     icon: Mail,
+                },
+            ],
+        });
+
+        groups.push({
+            title: 'Analytics',
+            items: [
+                {
+                    title: 'Website Analytics',
+                    href: { url: '/analytics', method: 'get' },
+                    icon: BarChart3,
                 },
             ],
         });

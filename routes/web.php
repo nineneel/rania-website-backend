@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\NewsletterSubscriberController;
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FAQController;
@@ -26,6 +27,9 @@ Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'uns
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Analytics Routes - Only accessible by super-admin and admin
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
     // User Management Routes - Only accessible by super-admin and admin
     Route::resource('users', UserManagementController::class)
