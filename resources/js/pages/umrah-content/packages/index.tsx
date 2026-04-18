@@ -163,7 +163,7 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                 {showNavigation && (
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
                         <Link href="/umrah-content/hotels">
-                            <Button variant="outline" className="w-full h-auto py-4">
+                            <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                                         <Building2 className="h-5 w-5 text-primary" />
@@ -178,7 +178,7 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                             </Button>
                         </Link>
                         <Link href="/umrah-content/airlines">
-                            <Button variant="outline" className="w-full h-auto py-4">
+                            <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                                         <Plane className="h-5 w-5 text-primary" />
@@ -193,7 +193,7 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                             </Button>
                         </Link>
                         <Link href="/umrah-content/transportations">
-                            <Button variant="outline" className="w-full h-auto py-4">
+                            <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                                         <Car className="h-5 w-5 text-primary" />
@@ -208,7 +208,7 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                             </Button>
                         </Link>
                         <Link href="/umrah-content/itineraries">
-                            <Button variant="outline" className="w-full h-auto py-4">
+                            <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                                         <Map className="h-5 w-5 text-primary" />
@@ -223,7 +223,7 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
                             </Button>
                         </Link>
                         <Link href="/umrah-content/additional-services">
-                            <Button variant="outline" className="w-full h-auto py-4">
+                            <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                                         <Sparkles className="h-5 w-5 text-primary" />
