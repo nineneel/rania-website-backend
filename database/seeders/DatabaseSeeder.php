@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
             UmrahPackageSeeder::class,
             FAQSeeder::class,
             SocialMediaSeeder::class,
+            LinktreeSeeder::class,
         ]);
     }
 }

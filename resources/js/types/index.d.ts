@@ -336,6 +336,39 @@ export interface TestimonialFormData {
     is_active: boolean;
 }
 
+// Linktree Types
+export interface LinktreeLink {
+    id: number;
+    title: string;
+    url: string;
+    order: number;
+    is_active: boolean;
+    click_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface LinktreeLinkFormData {
+    title: string;
+    url: string;
+    is_active: boolean;
+}
+
+export interface LinktreeAnalytics {
+    total_clicks: number;
+    total_clicks_today: number;
+    total_clicks_this_week: number;
+    top_links: Array<{
+        id: number;
+        title: string;
+        click_count: number;
+    }>;
+    clicks_by_day: Array<{
+        date: string;
+        count: number;
+    }>;
+}
+
 // FAQ Types
 export interface FAQ {
     id: number;

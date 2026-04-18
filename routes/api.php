@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ContactApiController;
 use App\Http\Controllers\Api\FAQApiController;
 use App\Http\Controllers\Api\HomeContentApiController;
+use App\Http\Controllers\Api\LinktreeApiController;
 use App\Http\Controllers\Api\SocialMediaApiController;
 use App\Http\Controllers\Api\TestimonialApiController;
 use App\Http\Controllers\Api\UmrahPackageApiController;
@@ -29,3 +30,9 @@ Route::get('/umrah-packages/{slug}', [UmrahPackageApiController::class, 'show'])
 Route::get('/umrah-packages/{slug}/other-additional-services', [UmrahPackageApiController::class, 'otherAdditionalServices']);
 Route::post('/contact', [ContactApiController::class, 'store']);
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+
+// Linktree (public)
+Route::get('/linktree', [LinktreeApiController::class, 'show']);
+Route::post('/linktree/links/{id}/click', [LinktreeApiController::class, 'trackClick'])
+    ->whereNumber('id')
+    ->middleware('throttle:60,1');

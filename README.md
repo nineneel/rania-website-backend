@@ -23,6 +23,7 @@ Admin dashboard for managing Rania Travel & Umrah website content. Built with La
 - **Testimonials** - Customer testimonials management
 - **FAQs** - Frequently asked questions management
 - **Social Media** - Manage social media links and icons
+- **Linktree** - Manage the bio-link page (links + click analytics)
 
 ### Umrah Packages
 - **Packages** - Complete Umrah package management
@@ -191,6 +192,8 @@ The application provides REST API endpoints for the public website to consume.
 | GET | `/api/umrah-packages` | Get active packages list with hotels, airlines & additional services | ✅ |
 | GET | `/api/umrah-packages/{slug}` | Get one active package detail by slug | ❌ |
 | GET | `/api/umrah-packages/{slug}/other-additional-services` | Get additional services not included in a package | ✅ |
+| GET | `/api/linktree` | Get active linktree links and social media | ❌ |
+| POST | `/api/linktree/links/{id}/click` | Track a click event on a linktree link | N/A |
 | POST | `/api/contact` | Submit contact form | N/A |
 | POST | `/api/newsletter/subscribe` | Subscribe to newsletter | N/A |
 
@@ -561,6 +564,106 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature/other-ad
 - Paginated (12 per page) to support future growth of add-on services.
 - If the package has no selected additional services, all active services are returned.
 - Returns 404 if the package slug is invalid or the package is inactive.
+
+---
+
+### Linktree
+
+Public endpoints that power the bio-link / Linktree page on the main website.
+
+#### 1) Get Linktree Data
+
+Returns all active linktree links along with the site's active social media links in a single response.
+
+**Endpoint:** `GET /api/linktree`
+
+**Example:**
+```bash
+curl "https://your-domain.com/api/linktree"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "links": [
+      {
+        "id": 1,
+        "title": "Official Website",
+        "url": "https://www.rania.co.id",
+        "order": 1
+      },
+      {
+        "id": 2,
+        "title": "Hajj Packages",
+        "url": "https://www.rania.co.id/hajj",
+        "order": 2
+      }
+    ],
+    "social_media": [
+      {
+        "id": 1,
+        "name": "Instagram",
+        "url": "https://instagram.com/rania",
+        "icon_url": "https://example.com/storage/social-media/instagram.png"
+      }
+    ]
+  }
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "message": "Failed to fetch linktree data"
+}
+```
+
+**Behavior:**
+- Only returns links with `is_active = true`, sorted by `order` ASC.
+- `social_media` is sourced from the same dataset as `/api/social-media` and is embedded here so the Linktree page only needs one request.
+- Response is safe to cache client-side for 5–15 minutes.
+
+---
+
+#### 2) Track Link Click
+
+Records a click event for a linktree link. Intended to be called in a fire-and-forget manner from the frontend so it does not block the user's navigation to the target URL.
+
+**Endpoint:** `POST /api/linktree/links/{id}/click`
+
+**Path Parameters:**
+- `id` (integer, required) - The linktree link ID.
+
+**Request Body:** None. The server reads the client's `User-Agent`, `Referer` header, and IP address automatically.
+
+**Example:**
+```bash
+curl -X POST "https://your-domain.com/api/linktree/links/1/click"
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Click recorded"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "success": false,
+  "message": "Link not found"
+}
+```
+
+**Behavior:**
+- Inserts a row into `linktree_link_clicks` (IP, user-agent, referer, timestamp) and increments `linktree_links.click_count` atomically.
+- Rate-limited to **60 requests per minute per IP** to mitigate abuse.
+- Frontend should call this endpoint without awaiting the response, then redirect the user to the target URL.
 
 ---
 

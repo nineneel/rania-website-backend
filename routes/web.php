@@ -6,6 +6,7 @@ use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FAQController;
 use App\Http\Controllers\HomeContentController;
+use App\Http\Controllers\LinktreeController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\TestimonialController;
@@ -159,6 +160,19 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{faq}', [FAQController::class, 'update'])->name('update');
         Route::delete('/{faq}', [FAQController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [FAQController::class, 'updateOrder'])->name('reorder');
+    });
+
+    // Linktree Routes - Only accessible by super-admin and admin
+    Route::prefix('linktree')->name('linktree.')->group(function () {
+        Route::get('/', [LinktreeController::class, 'index'])->name('index');
+
+        // Links
+        Route::get('/links/create', [LinktreeController::class, 'createLink'])->name('links.create');
+        Route::post('/links', [LinktreeController::class, 'storeLink'])->name('links.store');
+        Route::get('/links/{link}/edit', [LinktreeController::class, 'editLink'])->name('links.edit');
+        Route::put('/links/{link}', [LinktreeController::class, 'updateLink'])->name('links.update');
+        Route::delete('/links/{link}', [LinktreeController::class, 'destroyLink'])->name('links.destroy');
+        Route::post('/links/reorder', [LinktreeController::class, 'reorderLinks'])->name('links.reorder');
     });
 
     // Newsletter Subscribers Routes - Only accessible by super-admin and admin
