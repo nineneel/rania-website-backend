@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use Google\Analytics\Data\V1beta\BetaAnalyticsDataClient;
+use Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient;
 use Google\Analytics\Data\V1beta\DateRange;
 use Google\Analytics\Data\V1beta\Dimension;
 use Google\Analytics\Data\V1beta\Metric;
 use Google\Analytics\Data\V1beta\OrderBy;
 use Google\Analytics\Data\V1beta\OrderBy\MetricOrderBy;
+use Google\Analytics\Data\V1beta\RunReportRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -101,9 +102,9 @@ class GoogleAnalyticsService
 
     private function fetchOverview(string $property, array $dateRange): array
     {
-        $response = $this->getClient()->runReport([
+        $response = $this->getClient()->runReport(new RunReportRequest([
             'property' => $property,
-            'dateRanges' => [
+            'date_ranges' => [
                 new DateRange(['start_date' => $dateRange['start'], 'end_date' => $dateRange['end']]),
             ],
             'metrics' => [
@@ -114,7 +115,7 @@ class GoogleAnalyticsService
                 new Metric(['name' => 'averageSessionDuration']),
                 new Metric(['name' => 'newUsers']),
             ],
-        ]);
+        ]));
 
         $row = $response->getRows()[0] ?? null;
 
@@ -130,9 +131,9 @@ class GoogleAnalyticsService
 
     private function fetchVisitorsChart(string $property, array $dateRange): array
     {
-        $response = $this->getClient()->runReport([
+        $response = $this->getClient()->runReport(new RunReportRequest([
             'property' => $property,
-            'dateRanges' => [
+            'date_ranges' => [
                 new DateRange(['start_date' => $dateRange['start'], 'end_date' => $dateRange['end']]),
             ],
             'dimensions' => [
@@ -142,10 +143,10 @@ class GoogleAnalyticsService
                 new Metric(['name' => 'totalUsers']),
                 new Metric(['name' => 'screenPageViews']),
             ],
-            'orderBys' => [
+            'order_bys' => [
                 new OrderBy(['dimension' => new OrderBy\DimensionOrderBy(['dimension_name' => 'date'])]),
             ],
-        ]);
+        ]));
 
         $data = [];
         foreach ($response->getRows() as $row) {
@@ -162,9 +163,9 @@ class GoogleAnalyticsService
 
     private function fetchTopPages(string $property, array $dateRange): array
     {
-        $response = $this->getClient()->runReport([
+        $response = $this->getClient()->runReport(new RunReportRequest([
             'property' => $property,
-            'dateRanges' => [
+            'date_ranges' => [
                 new DateRange(['start_date' => $dateRange['start'], 'end_date' => $dateRange['end']]),
             ],
             'dimensions' => [
@@ -176,11 +177,11 @@ class GoogleAnalyticsService
                 new Metric(['name' => 'totalUsers']),
                 new Metric(['name' => 'averageSessionDuration']),
             ],
-            'orderBys' => [
+            'order_bys' => [
                 new OrderBy(['metric' => new MetricOrderBy(['metric_name' => 'screenPageViews']), 'desc' => true]),
             ],
             'limit' => 10,
-        ]);
+        ]));
 
         $data = [];
         foreach ($response->getRows() as $row) {
@@ -198,9 +199,9 @@ class GoogleAnalyticsService
 
     private function fetchTrafficSources(string $property, array $dateRange): array
     {
-        $response = $this->getClient()->runReport([
+        $response = $this->getClient()->runReport(new RunReportRequest([
             'property' => $property,
-            'dateRanges' => [
+            'date_ranges' => [
                 new DateRange(['start_date' => $dateRange['start'], 'end_date' => $dateRange['end']]),
             ],
             'dimensions' => [
@@ -210,11 +211,11 @@ class GoogleAnalyticsService
                 new Metric(['name' => 'sessions']),
                 new Metric(['name' => 'totalUsers']),
             ],
-            'orderBys' => [
+            'order_bys' => [
                 new OrderBy(['metric' => new MetricOrderBy(['metric_name' => 'sessions']), 'desc' => true]),
             ],
             'limit' => 8,
-        ]);
+        ]));
 
         $data = [];
         foreach ($response->getRows() as $row) {
@@ -230,9 +231,9 @@ class GoogleAnalyticsService
 
     private function fetchDevices(string $property, array $dateRange): array
     {
-        $response = $this->getClient()->runReport([
+        $response = $this->getClient()->runReport(new RunReportRequest([
             'property' => $property,
-            'dateRanges' => [
+            'date_ranges' => [
                 new DateRange(['start_date' => $dateRange['start'], 'end_date' => $dateRange['end']]),
             ],
             'dimensions' => [
@@ -242,10 +243,10 @@ class GoogleAnalyticsService
                 new Metric(['name' => 'sessions']),
                 new Metric(['name' => 'totalUsers']),
             ],
-            'orderBys' => [
+            'order_bys' => [
                 new OrderBy(['metric' => new MetricOrderBy(['metric_name' => 'sessions']), 'desc' => true]),
             ],
-        ]);
+        ]));
 
         $data = [];
         foreach ($response->getRows() as $row) {
@@ -261,9 +262,9 @@ class GoogleAnalyticsService
 
     private function fetchCountries(string $property, array $dateRange): array
     {
-        $response = $this->getClient()->runReport([
+        $response = $this->getClient()->runReport(new RunReportRequest([
             'property' => $property,
-            'dateRanges' => [
+            'date_ranges' => [
                 new DateRange(['start_date' => $dateRange['start'], 'end_date' => $dateRange['end']]),
             ],
             'dimensions' => [
@@ -274,11 +275,11 @@ class GoogleAnalyticsService
                 new Metric(['name' => 'totalUsers']),
                 new Metric(['name' => 'sessions']),
             ],
-            'orderBys' => [
+            'order_bys' => [
                 new OrderBy(['metric' => new MetricOrderBy(['metric_name' => 'totalUsers']), 'desc' => true]),
             ],
             'limit' => 10,
-        ]);
+        ]));
 
         $data = [];
         foreach ($response->getRows() as $row) {
