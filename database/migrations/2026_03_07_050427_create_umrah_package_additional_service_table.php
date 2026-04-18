@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('umrah_package_additional_service', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('umrah_package_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('umrah_additional_service_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('umrah_package_id')
+                ->constrained('umrah_packages', 'id', 'upas_package_id_foreign')
+                ->cascadeOnDelete();
+            $table->foreignId('umrah_additional_service_id')
+                ->constrained('umrah_additional_services', 'id', 'upas_service_id_foreign')
+                ->cascadeOnDelete();
             $table->integer('order')->default(0);
             $table->timestamps();
 
-            $table->unique(['umrah_package_id', 'umrah_additional_service_id'], 'umrah_package_additional_service_unique');
+            $table->unique(['umrah_package_id', 'umrah_additional_service_id'], 'upas_package_service_unique');
         });
     }
 
