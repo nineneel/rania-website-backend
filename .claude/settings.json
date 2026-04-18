@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(vendor/bin/pint --dirty)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(composer require:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }

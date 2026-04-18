@@ -26,7 +26,7 @@ import {
     type UmrahTransportation,
 } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Building2, Bus, MapPin, Plane, Plus, Star, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Building2, Bus, Check, DollarSign, MapPin, Plane, Plus, Star, Trash2, X } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 const DEFAULT_PACKAGE_SERVICES: { title: string; is_included: boolean }[] = [
@@ -194,6 +194,12 @@ export default function EditPackage({
     };
 
     const [newServiceTitle, setNewServiceTitle] = useState('');
+
+    const toggleServiceIncluded = (index: number) => {
+        const updated = [...data.package_services];
+        updated[index] = { ...updated[index], is_included: !updated[index].is_included };
+        setData('package_services', updated);
+    };
 
     const removeService = (index: number) => {
         setData('package_services', data.package_services.filter((_, i) => i !== index));
@@ -668,14 +674,31 @@ export default function EditPackage({
                                     {data.package_services.map((service, index) => (
                                         <div
                                             key={index}
-                                            className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                            className="flex items-center gap-2.5 rounded-lg border px-3 py-2"
                                         >
-                                            <span className="text-sm">{service.title}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleServiceIncluded(index)}
+                                                className={cn(
+                                                    'flex shrink-0 items-center gap-1.5 rounded-full py-0.5 pl-1 pr-2 text-xs font-medium transition-colors',
+                                                    service.is_included
+                                                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                                                )}
+                                            >
+                                                {service.is_included ? (
+                                                    <Check className="size-3.5" />
+                                                ) : (
+                                                    <DollarSign className="size-3.5" />
+                                                )}
+                                                {service.is_included ? 'Included' : 'Extra fee'}
+                                            </button>
+                                            <span className="flex-1 text-sm">{service.title}</span>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                className="size-7 p-0 text-muted-foreground hover:text-destructive"
+                                                className="size-7 shrink-0 p-0 text-muted-foreground hover:text-destructive"
                                                 onClick={() => removeService(index)}
                                             >
                                                 <X className="size-4" />
