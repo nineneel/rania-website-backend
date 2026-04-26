@@ -35,6 +35,7 @@ import {
     Plane,
     Plus,
     Sparkles,
+    Tags,
     Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -83,9 +84,18 @@ function SortableRow({ pkg, onDelete }: { pkg: UmrahPackage; onDelete: () => voi
                     className="h-16 w-24 rounded object-cover"
                 />
             </td>
-            <td className="p-3 font-medium">{pkg.title}</td>
+            <td className="p-3 font-medium">
+                {pkg.title}
+                {pkg.category && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        {pkg.category.name}
+                    </span>
+                )}
+            </td>
             <td className="p-3 text-muted-foreground">{pkg.duration}</td>
-            <td className="p-3 font-medium">{pkg.currency} {formatPrice(pkg.price)}</td>
+            <td className="p-3 font-medium">
+                {pkg.price_idr ? `IDR ${formatPrice(pkg.price_idr)}` : '-'}
+            </td>
             <td className="p-3">
                 <Badge variant={pkg.is_active ? 'default' : 'secondary'}>
                     {pkg.is_active ? 'Active' : 'Inactive'}
@@ -161,7 +171,22 @@ export default function PackagesIndex({ packages, showNavigation = false }: Pack
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 {/* Navigation buttons for Hotels and Airlines */}
                 {showNavigation && (
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <Link href="/umrah-content/categories">
+                            <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                        <Tags className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Categories</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Manage categories
+                                        </div>
+                                    </div>
+                                </div>
+                            </Button>
+                        </Link>
                         <Link href="/umrah-content/hotels">
                             <Button variant="outline" className="w-full h-auto py-4 hover:bg-muted hover:text-foreground">
                                 <div className="flex items-center gap-3">

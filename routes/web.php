@@ -101,6 +101,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/itineraries/{itinerary}', [UmrahContentController::class, 'updateItinerary'])->name('itineraries.update');
         Route::delete('/itineraries/{itinerary}', [UmrahContentController::class, 'destroyItinerary'])->name('itineraries.destroy');
 
+        // Categories
+        Route::get('/categories', [UmrahContentController::class, 'indexCategories'])->name('categories.index');
+        Route::get('/categories/create', [UmrahContentController::class, 'createCategory'])->name('categories.create');
+        Route::post('/categories', [UmrahContentController::class, 'storeCategory'])->name('categories.store');
+        Route::get('/categories/{category}/edit', [UmrahContentController::class, 'editCategory'])->name('categories.edit');
+        Route::put('/categories/{category}', [UmrahContentController::class, 'updateCategory'])->name('categories.update');
+        Route::delete('/categories/{category}', [UmrahContentController::class, 'destroyCategory'])->name('categories.destroy');
+
         // Additional services
         Route::get('/additional-services', [UmrahContentController::class, 'indexAdditionalServices'])->name('additional-services.index');
         Route::get('/additional-services/create', [UmrahContentController::class, 'createAdditionalService'])->name('additional-services.create');

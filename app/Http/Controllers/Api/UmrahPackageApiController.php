@@ -4,27 +4,74 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\UmrahAdditionalService;
+use App\Models\UmrahCategory;
 use App\Models\UmrahPackage;
+use Illuminate\Http\Request;
 
 class UmrahPackageApiController extends Controller
 {
     /**
+     * Supported locale codes and their matching currency.
+     */
+    private const LOCALE_MAP = [
+        'id' => 'IDR',
+        'en' => 'USD',
+        'ar' => 'SAR',
+    ];
+
+    private const DEFAULT_LOCALE = 'id';
+
+    /**
+     * Resolve the locale from the request.
+     *
+     * Precedence: `?lang=xx` query param > `Accept-Language` header > default `id`.
+     */
+    private function resolveLocale(Request $request): string
+    {
+        $queryLocale = strtolower((string) $request->query('lang', ''));
+
+        if (array_key_exists($queryLocale, self::LOCALE_MAP)) {
+            return $queryLocale;
+        }
+
+        $headerLocale = strtolower(substr((string) $request->header('Accept-Language', ''), 0, 2));
+
+        if (array_key_exists($headerLocale, self::LOCALE_MAP)) {
+            return $headerLocale;
+        }
+
+        return self::DEFAULT_LOCALE;
+    }
+
+    /**
      * Get all active umrah packages with their hotels and airlines.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $packages = UmrahPackage::active()
+        $locale = $this->resolveLocale($request);
+
+        $query = UmrahPackage::active()
             ->ordered()
-            ->with(['hotels', 'airlines', 'additionalServices'])
-            ->paginate(10);
+            ->with(['hotels', 'airlines', 'additionalServices', 'category']);
+
+        // Optional filter by category slug (e.g. ?category=umrah-private)
+        if ($categorySlug = $request->query('category')) {
+            $query->whereHas('category', function ($q) use ($categorySlug) {
+                $q->where('slug', $categorySlug);
+            });
+        }
+
+        $packages = $query->paginate(10);
 
         $allAdditionalServices = UmrahAdditionalService::active()->ordered()->get();
 
-        $data = $packages->map(function (UmrahPackage $package) use ($allAdditionalServices) {
+        $data = $packages->getCollection()->map(function (UmrahPackage $package) use ($allAdditionalServices, $locale) {
             $hasOverrides = $package->additionalServices->isNotEmpty();
             $additionalServices = $hasOverrides
                 ? $package->additionalServices->where('is_active', true)->values()
                 : $allAdditionalServices;
+
+            $priceInfo = $package->priceForLocale($locale);
 
             return [
                 'id' => $package->id,
@@ -36,9 +83,19 @@ class UmrahPackageApiController extends Controller
                 'departure' => $package->departure,
                 'duration' => $package->duration,
                 'departure_schedule' => $package->departure_schedule,
-                'price' => $package->price,
+                'price' => $priceInfo['price'],
+                'currency' => $priceInfo['currency'],
+                'prices' => [
+                    'idr' => $package->price_idr,
+                    'usd' => $package->price_usd,
+                    'sar' => $package->price_sar,
+                ],
                 'link' => $package->link,
-                'currency' => $package->currency,
+                'category' => $package->category ? [
+                    'id' => $package->category->id,
+                    'name' => $package->category->name,
+                    'slug' => $package->category->slug,
+                ] : null,
                 'hotels' => $package->hotels->map(function ($hotel) {
                     return [
                         'id' => $hotel->id,
@@ -71,6 +128,8 @@ class UmrahPackageApiController extends Controller
 
         return response()->json([
             'success' => true,
+            'locale' => $locale,
+            'currency' => self::LOCALE_MAP[$locale],
             'data' => $data,
             'meta' => [
                 'current_page' => $packages->currentPage(),
@@ -90,8 +149,10 @@ class UmrahPackageApiController extends Controller
     /**
      * Get one active umrah package detail by slug.
      */
-    public function show(string $slug)
+    public function show(Request $request, string $slug)
     {
+        $locale = $this->resolveLocale($request);
+
         $package = UmrahPackage::active()
             ->where('slug', $slug)
             ->with([
@@ -102,6 +163,7 @@ class UmrahPackageApiController extends Controller
                 'additionalServices',
                 'services',
                 'images',
+                'category',
             ])
             ->firstOrFail();
 
@@ -110,8 +172,12 @@ class UmrahPackageApiController extends Controller
             ? $package->additionalServices()->where('umrah_additional_services.is_active', true)->get()
             : UmrahAdditionalService::active()->ordered()->get();
 
+        $priceInfo = $package->priceForLocale($locale);
+
         return response()->json([
             'success' => true,
+            'locale' => $locale,
+            'currency' => self::LOCALE_MAP[$locale],
             'data' => [
                 'id' => $package->id,
                 'title' => $package->title,
@@ -123,9 +189,20 @@ class UmrahPackageApiController extends Controller
                 'departure' => $package->departure,
                 'duration' => $package->duration,
                 'departure_schedule' => $package->departure_schedule,
-                'price' => $package->price,
-                'currency' => $package->currency,
+                'price' => $priceInfo['price'],
+                'currency' => $priceInfo['currency'],
+                'prices' => [
+                    'idr' => $package->price_idr,
+                    'usd' => $package->price_usd,
+                    'sar' => $package->price_sar,
+                ],
                 'link' => $package->link,
+                'category' => $package->category ? [
+                    'id' => $package->category->id,
+                    'name' => $package->category->name,
+                    'slug' => $package->category->slug,
+                    'description' => $package->category->description,
+                ] : null,
                 'hotels' => $package->hotels->map(function ($hotel) {
                     return [
                         'id' => $hotel->id,
@@ -193,6 +270,34 @@ class UmrahPackageApiController extends Controller
     }
 
     /**
+     * Get all active umrah categories.
+     */
+    public function categories()
+    {
+        $categories = UmrahCategory::active()
+            ->ordered()
+            ->withCount(['packages' => function ($q) {
+                $q->where('is_active', true);
+            }])
+            ->get()
+            ->map(function (UmrahCategory $category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'description' => $category->description,
+                    'order' => $category->order,
+                    'packages_count' => $category->packages_count,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $categories,
+        ]);
+    }
+
+    /**
      * Get additional services that are NOT included in a specific package.
      */
     public function otherAdditionalServices(string $slug)
@@ -208,7 +313,7 @@ class UmrahPackageApiController extends Controller
             ->whereNotIn('id', $includedIds)
             ->paginate(12);
 
-        $data = $others->map(function ($service) {
+        $data = $others->getCollection()->map(function ($service) {
             return [
                 'id' => $service->id,
                 'title' => $service->title,

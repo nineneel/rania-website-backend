@@ -25,6 +25,7 @@ Route::get('/events', [HomeContentApiController::class, 'getEvents']);
 Route::get('/social-media', [SocialMediaApiController::class, 'index']);
 Route::get('/faqs', [FAQApiController::class, 'index']);
 Route::get('/testimonials', [TestimonialApiController::class, 'index']);
+Route::get('/umrah-categories', [UmrahPackageApiController::class, 'categories']);
 Route::get('/umrah-packages', [UmrahPackageApiController::class, 'index']);
 Route::get('/umrah-packages/{slug}', [UmrahPackageApiController::class, 'show']);
 Route::get('/umrah-packages/{slug}/other-additional-services', [UmrahPackageApiController::class, 'otherAdditionalServices']);

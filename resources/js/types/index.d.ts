@@ -107,6 +107,25 @@ export interface EventFormData {
 }
 
 // Umrah Types
+export interface UmrahCategory {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+    is_active: boolean;
+    order: number;
+    packages_count?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UmrahCategoryFormData {
+    name: string;
+    slug: string;
+    description: string;
+    is_active: boolean;
+}
+
 export interface UmrahAirline {
     id: number;
     name: string;
@@ -132,6 +151,8 @@ export interface UmrahHotel {
 
 export interface UmrahPackage {
     id: number;
+    umrah_category_id: number | null;
+    category?: UmrahCategory | null;
     title: string;
     slug: string;
     subtitle?: string;
@@ -141,8 +162,9 @@ export interface UmrahPackage {
     departure: string;
     duration: string;
     departure_schedule: string;
-    price: string;
-    currency: string;
+    price_idr: string | null;
+    price_usd: string | null;
+    price_sar: string | null;
     link: string | null;
     is_active: boolean;
     order: number;
@@ -231,6 +253,7 @@ export interface UmrahHotelFormData {
 }
 
 export interface UmrahPackageFormData {
+    umrah_category_id: number | '';
     title: string;
     slug: string;
     subtitle: string;
@@ -241,8 +264,9 @@ export interface UmrahPackageFormData {
     departure: string;
     duration: string;
     departure_schedule: string;
-    price: string;
-    currency: string;
+    price_idr: string;
+    price_usd: string;
+    price_sar: string;
     link: string;
     is_active: boolean;
     hotel_ids: number[];

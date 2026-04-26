@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
         // Seed content
         $this->call([
             HomeContentSeeder::class,
+            UmrahCategorySeeder::class,
             UmrahPackageSeeder::class,
             FAQSeeder::class,
             SocialMediaSeeder::class,

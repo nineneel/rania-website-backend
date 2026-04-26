@@ -28,6 +28,7 @@ class UpdateUmrahPackageRequest extends FormRequest
         $packageId = is_object($package) ? $package->id : $package;
 
         return [
+            'umrah_category_id' => ['nullable', 'integer', 'exists:umrah_categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('umrah_packages', 'slug')->ignore($packageId)],
             'subtitle' => ['nullable', 'string', 'max:255'],
@@ -40,8 +41,9 @@ class UpdateUmrahPackageRequest extends FormRequest
             'departure' => ['required', 'string', 'max:255'],
             'duration' => ['required', 'string', 'max:50'],
             'departure_schedule' => ['required', 'string', 'max:50'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', 'string', 'max:10'],
+            'price_idr' => ['required', 'numeric', 'min:0'],
+            'price_usd' => ['nullable', 'numeric', 'min:0'],
+            'price_sar' => ['nullable', 'numeric', 'min:0'],
             'link' => ['nullable', 'string', 'url', 'max:500'],
             'is_active' => ['boolean'],
             'hotel_ids' => ['nullable', 'array'],

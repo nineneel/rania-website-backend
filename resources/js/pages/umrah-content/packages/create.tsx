@@ -19,11 +19,19 @@ import {
     type BreadcrumbItem,
     type UmrahAdditionalService,
     type UmrahAirline,
+    type UmrahCategory,
     type UmrahHotel,
     type UmrahItinerary,
     type UmrahPackageFormData,
     type UmrahTransportation,
 } from '@/types';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Head, useForm } from '@inertiajs/react';
 import { ArrowLeft, Building2, Bus, Check, DollarSign, MapPin, Plane, Plus, Star, X } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -45,6 +53,7 @@ interface CreatePackageProps {
     transportations: UmrahTransportation[];
     itineraries: UmrahItinerary[];
     additionalServices: UmrahAdditionalService[];
+    categories: UmrahCategory[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -77,10 +86,12 @@ export default function CreatePackage({
     transportations,
     itineraries,
     additionalServices,
+    categories,
 }: CreatePackageProps) {
     const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm<UmrahPackageFormData>({
+        umrah_category_id: '',
         title: '',
         slug: '',
         subtitle: '',
@@ -91,8 +102,9 @@ export default function CreatePackage({
         departure: '',
         duration: '',
         departure_schedule: '',
-        price: '',
-        currency: 'Rp',
+        price_idr: '',
+        price_usd: '',
+        price_sar: '',
         link: '',
         is_active: true,
         hotel_ids: [],
@@ -205,6 +217,43 @@ export default function CreatePackage({
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="umrah_category_id">Category (Optional)</Label>
+                                <Select
+                                    value={
+                                        data.umrah_category_id === ''
+                                            ? 'none'
+                                            : String(data.umrah_category_id)
+                                    }
+                                    onValueChange={(value) =>
+                                        setData(
+                                            'umrah_category_id',
+                                            value === 'none' ? '' : Number(value),
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger id="umrah_category_id">
+                                        <SelectValue placeholder="Select a category..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No category</SelectItem>
+                                        {categories.map((category) => (
+                                            <SelectItem
+                                                key={category.id}
+                                                value={String(category.id)}
+                                            >
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.umrah_category_id && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.umrah_category_id}
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="space-y-2">
                                 <Label htmlFor="title">Package Title</Label>
                                 <Input
@@ -321,58 +370,102 @@ export default function CreatePackage({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="departure_schedule">Pax</Label>
-                                    <Input
-                                        id="departure_schedule"
-                                        type="text"
-                                        value={data.departure_schedule}
-                                        onChange={(e) =>
-                                            setData('departure_schedule', e.target.value)
-                                        }
-                                        placeholder="e.g., 1-10 Pax"
-                                        required
-                                    />
-                                    {errors.departure_schedule && (
-                                        <p className="text-sm text-destructive">
-                                            {errors.departure_schedule}
-                                        </p>
-                                    )}
-                                </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="departure_schedule">Pax</Label>
+                                <Input
+                                    id="departure_schedule"
+                                    type="text"
+                                    value={data.departure_schedule}
+                                    onChange={(e) =>
+                                        setData('departure_schedule', e.target.value)
+                                    }
+                                    placeholder="e.g., 1-10 Pax"
+                                    required
+                                />
+                                {errors.departure_schedule && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.departure_schedule}
+                                    </p>
+                                )}
+                            </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="price">Price</Label>
-                                    <div className="flex gap-2">
+                            <div className="space-y-2">
+                                <Label>Prices (per locale)</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Enter the price for each locale. IDR is required; USD &amp; SAR are
+                                    optional.
+                                </p>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                    <div className="space-y-1">
+                                        <Label htmlFor="price_idr" className="text-xs">
+                                            IDR (Indonesia)
+                                        </Label>
                                         <Input
-                                            id="currency"
-                                            type="text"
-                                            value={data.currency}
-                                            onChange={(e) => setData('currency', e.target.value)}
-                                            className="w-20"
+                                            id="price_idr"
+                                            type="number"
+                                            step="0.01"
+                                            value={data.price_idr}
+                                            onChange={(e) => setData('price_idr', e.target.value)}
+                                            placeholder="54800000.00"
                                             required
                                         />
-                                        <div className="flex-1 space-y-1">
-                                            <Input
-                                                id="price"
-                                                type="number"
-                                                step="0.01"
-                                                value={data.price}
-                                                onChange={(e) => setData('price', e.target.value)}
-                                                placeholder="54800000.00"
-                                                required
-                                            />
-                                            {data.price && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    Preview: {data.currency}{' '}
-                                                    {formatPrice(data.price)}
-                                                </p>
-                                            )}
-                                        </div>
+                                        {data.price_idr && (
+                                            <p className="text-xs text-muted-foreground">
+                                                IDR {formatPrice(data.price_idr)}
+                                            </p>
+                                        )}
+                                        {errors.price_idr && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.price_idr}
+                                            </p>
+                                        )}
                                     </div>
-                                    {errors.price && (
-                                        <p className="text-sm text-destructive">{errors.price}</p>
-                                    )}
+                                    <div className="space-y-1">
+                                        <Label htmlFor="price_usd" className="text-xs">
+                                            USD (English)
+                                        </Label>
+                                        <Input
+                                            id="price_usd"
+                                            type="number"
+                                            step="0.01"
+                                            value={data.price_usd}
+                                            onChange={(e) => setData('price_usd', e.target.value)}
+                                            placeholder="3500.00"
+                                        />
+                                        {data.price_usd && (
+                                            <p className="text-xs text-muted-foreground">
+                                                USD {formatPrice(data.price_usd)}
+                                            </p>
+                                        )}
+                                        {errors.price_usd && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.price_usd}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="price_sar" className="text-xs">
+                                            SAR (Arabic)
+                                        </Label>
+                                        <Input
+                                            id="price_sar"
+                                            type="number"
+                                            step="0.01"
+                                            value={data.price_sar}
+                                            onChange={(e) => setData('price_sar', e.target.value)}
+                                            placeholder="13125.00"
+                                        />
+                                        {data.price_sar && (
+                                            <p className="text-xs text-muted-foreground">
+                                                SAR {formatPrice(data.price_sar)}
+                                            </p>
+                                        )}
+                                        {errors.price_sar && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.price_sar}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

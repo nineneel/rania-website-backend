@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUmrahAdditionalServiceRequest;
+use App\Http\Requests\StoreUmrahCategoryRequest;
 use App\Http\Requests\StoreUmrahItineraryRequest;
 use App\Http\Requests\StoreUmrahPackageRequest;
 use App\Http\Requests\StoreUmrahTransportationRequest;
 use App\Http\Requests\UpdateUmrahAdditionalServiceRequest;
+use App\Http\Requests\UpdateUmrahCategoryRequest;
 use App\Http\Requests\UpdateUmrahItineraryRequest;
 use App\Http\Requests\UpdateUmrahPackageRequest;
 use App\Http\Requests\UpdateUmrahTransportationRequest;
 use App\Models\UmrahAdditionalService;
 use App\Models\UmrahAirline;
+use App\Models\UmrahCategory;
 use App\Models\UmrahHotel;
 use App\Models\UmrahItinerary;
 use App\Models\UmrahPackage;
@@ -45,7 +48,7 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $packages = UmrahPackage::with(['hotels', 'airlines'])->ordered()->get();
+        $packages = UmrahPackage::with(['hotels', 'airlines', 'category'])->ordered()->get();
 
         return Inertia::render('umrah-content/packages/index', [
             'packages' => $packages,
@@ -647,6 +650,96 @@ class UmrahContentController extends Controller
             ->with('success', 'Additional service deleted successfully.');
     }
 
+    // ==================== CATEGORIES ====================
+
+    /**
+     * Display categories index page.
+     */
+    public function indexCategories()
+    {
+        if (! $this->user()->canManageHomeContent()) {
+            return Inertia::render('errors/403', [
+                'message' => 'You do not have permission to manage umrah content.',
+            ])->toResponse(request())->setStatusCode(403);
+        }
+
+        $categories = UmrahCategory::ordered()->withCount('packages')->get();
+
+        return Inertia::render('umrah-content/categories/index', [
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new category.
+     */
+    public function createCategory()
+    {
+        if (! $this->user()->canManageHomeContent()) {
+            return Inertia::render('errors/403', [
+                'message' => 'You do not have permission to manage umrah content.',
+            ])->toResponse(request())->setStatusCode(403);
+        }
+
+        return Inertia::render('umrah-content/categories/create');
+    }
+
+    /**
+     * Store a new category.
+     */
+    public function storeCategory(StoreUmrahCategoryRequest $request)
+    {
+        $validated = $request->validated();
+        $validated['order'] = (UmrahCategory::max('order') ?? -1) + 1;
+
+        UmrahCategory::create($validated);
+
+        return redirect()->route('umrah-content.categories.index')
+            ->with('success', 'Category created successfully.');
+    }
+
+    /**
+     * Show the form for editing a category.
+     */
+    public function editCategory(UmrahCategory $category)
+    {
+        if (! $this->user()->canManageHomeContent()) {
+            return Inertia::render('errors/403', [
+                'message' => 'You do not have permission to manage umrah content.',
+            ])->toResponse(request())->setStatusCode(403);
+        }
+
+        return Inertia::render('umrah-content/categories/edit', [
+            'category' => $category,
+        ]);
+    }
+
+    /**
+     * Update an existing category.
+     */
+    public function updateCategory(UpdateUmrahCategoryRequest $request, UmrahCategory $category)
+    {
+        $category->update($request->validated());
+
+        return redirect()->route('umrah-content.categories.index')
+            ->with('success', 'Category updated successfully.');
+    }
+
+    /**
+     * Delete a category. Packages will keep working with category_id set to null.
+     */
+    public function destroyCategory(UmrahCategory $category)
+    {
+        if (! $this->user()->canManageHomeContent()) {
+            abort(403, 'You do not have permission to manage umrah content.');
+        }
+
+        $category->delete();
+
+        return redirect()->route('umrah-content.categories.index')
+            ->with('success', 'Category deleted successfully.');
+    }
+
     // ==================== PACKAGES ====================
 
     /**
@@ -660,7 +753,7 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $packages = UmrahPackage::with(['hotels', 'airlines'])->ordered()->get();
+        $packages = UmrahPackage::with(['hotels', 'airlines', 'category'])->ordered()->get();
 
         return Inertia::render('umrah-content/packages/index', [
             'packages' => $packages,
@@ -683,6 +776,7 @@ class UmrahContentController extends Controller
         $transportations = UmrahTransportation::active()->ordered()->get();
         $itineraries = UmrahItinerary::active()->ordered()->get();
         $additionalServices = UmrahAdditionalService::active()->ordered()->get();
+        $categories = UmrahCategory::active()->ordered()->get();
 
         return Inertia::render('umrah-content/packages/create', [
             'hotels' => $hotels,
@@ -690,6 +784,7 @@ class UmrahContentController extends Controller
             'transportations' => $transportations,
             'itineraries' => $itineraries,
             'additionalServices' => $additionalServices,
+            'categories' => $categories,
         ]);
     }
 
@@ -804,13 +899,14 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $package->load(['hotels', 'airlines', 'transportations', 'itineraries', 'additionalServices', 'services', 'images']);
+        $package->load(['hotels', 'airlines', 'transportations', 'itineraries', 'additionalServices', 'services', 'images', 'category']);
 
         $hotels = UmrahHotel::active()->orderBy('name')->get();
         $airlines = UmrahAirline::active()->orderBy('name')->get();
         $transportations = UmrahTransportation::active()->ordered()->get();
         $itineraries = UmrahItinerary::active()->ordered()->get();
         $additionalServices = UmrahAdditionalService::active()->ordered()->get();
+        $categories = UmrahCategory::active()->ordered()->get();
 
         return Inertia::render('umrah-content/packages/edit', [
             'package' => $package,
@@ -819,6 +915,7 @@ class UmrahContentController extends Controller
             'transportations' => $transportations,
             'itineraries' => $itineraries,
             'additionalServices' => $additionalServices,
+            'categories' => $categories,
         ]);
     }
 
