@@ -1,6 +1,13 @@
 import { ImageUpload } from '@/components/image-upload';
+import { ItemPickerDialog } from '@/components/item-picker-dialog';
 import { MultiImageUpload } from '@/components/multi-image-upload';
-import { SelectionCard } from '@/components/selection-card';
+import {
+    AdditionalServiceItem,
+    AirlineItem,
+    HotelItem,
+    ItineraryItem,
+    TransportationItem,
+} from '@/components/umrah-picker-items';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -34,8 +41,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Head, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Building2, Bus, Check, DollarSign, MapPin, Plane, Plus, Star, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Check, DollarSign, Moon, Plus, Trash2, X } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+
+const DEFAULT_HOTEL_NIGHTS = 3;
 
 const DEFAULT_PACKAGE_SERVICES: { title: string; is_included: boolean }[] = [
     { title: 'Visa', is_included: true },
@@ -111,6 +120,11 @@ export default function EditPackage({
         link: pkg.link || '',
         is_active: pkg.is_active,
         hotel_ids: pkg.hotels?.map((h) => h.id) || [],
+        hotel_nights:
+            pkg.hotels?.reduce<Record<number, number>>((acc, h) => {
+                acc[h.id] = h.pivot?.total_nights ?? DEFAULT_HOTEL_NIGHTS;
+                return acc;
+            }, {}) || {},
         airline_ids: pkg.airlines?.map((a) => a.id) || [],
         transportation_ids: pkg.transportations?.map((t) => t.id) || [],
         itinerary_ids: pkg.itineraries?.map((i) => i.id) || [],
@@ -160,50 +174,95 @@ export default function EditPackage({
         );
     };
 
-    const toggleHotel = (hotelId: number) => {
-        setData(
-            'hotel_ids',
-            data.hotel_ids.includes(hotelId)
-                ? data.hotel_ids.filter((id) => id !== hotelId)
-                : [...data.hotel_ids, hotelId],
-        );
+    const addHotel = (hotelId: number) => {
+        if (data.hotel_ids.includes(hotelId)) {
+            return;
+        }
+        setData('hotel_ids', [...data.hotel_ids, hotelId]);
+        setData('hotel_nights', {
+            ...data.hotel_nights,
+            [hotelId]: data.hotel_nights[hotelId] ?? DEFAULT_HOTEL_NIGHTS,
+        });
     };
 
-    const toggleAirline = (airlineId: number) => {
-        setData(
-            'airline_ids',
-            data.airline_ids.includes(airlineId)
-                ? data.airline_ids.filter((id) => id !== airlineId)
-                : [...data.airline_ids, airlineId],
-        );
+    const removeHotel = (hotelId: number) => {
+        const nextNights = { ...data.hotel_nights };
+        delete nextNights[hotelId];
+        setData('hotel_ids', data.hotel_ids.filter((id) => id !== hotelId));
+        setData('hotel_nights', nextNights);
     };
 
-    const toggleTransportation = (transportationId: number) => {
+    const setHotelNights = (hotelId: number, value: string) => {
+        const parsed = Number.parseInt(value, 10);
+        const nights = Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_HOTEL_NIGHTS;
+        setData('hotel_nights', { ...data.hotel_nights, [hotelId]: nights });
+    };
+
+    const addAirline = (airlineId: number) => {
+        if (data.airline_ids.includes(airlineId)) {
+            return;
+        }
+        setData('airline_ids', [...data.airline_ids, airlineId]);
+    };
+
+    const removeAirline = (airlineId: number) => {
+        setData('airline_ids', data.airline_ids.filter((id) => id !== airlineId));
+    };
+
+    const addTransportation = (transportationId: number) => {
+        if (data.transportation_ids.includes(transportationId)) {
+            return;
+        }
+        setData('transportation_ids', [...data.transportation_ids, transportationId]);
+    };
+
+    const removeTransportation = (transportationId: number) => {
         setData(
             'transportation_ids',
-            data.transportation_ids.includes(transportationId)
-                ? data.transportation_ids.filter((id) => id !== transportationId)
-                : [...data.transportation_ids, transportationId],
+            data.transportation_ids.filter((id) => id !== transportationId),
         );
     };
 
-    const toggleItinerary = (itineraryId: number) => {
-        setData(
-            'itinerary_ids',
-            data.itinerary_ids.includes(itineraryId)
-                ? data.itinerary_ids.filter((id) => id !== itineraryId)
-                : [...data.itinerary_ids, itineraryId],
-        );
+    const addItinerary = (itineraryId: number) => {
+        if (data.itinerary_ids.includes(itineraryId)) {
+            return;
+        }
+        setData('itinerary_ids', [...data.itinerary_ids, itineraryId]);
     };
 
-    const toggleAdditionalService = (serviceId: number) => {
+    const removeItinerary = (itineraryId: number) => {
+        setData('itinerary_ids', data.itinerary_ids.filter((id) => id !== itineraryId));
+    };
+
+    const addAdditionalService = (serviceId: number) => {
+        if (data.additional_service_ids.includes(serviceId)) {
+            return;
+        }
+        setData('additional_service_ids', [...data.additional_service_ids, serviceId]);
+    };
+
+    const removeAdditionalService = (serviceId: number) => {
         setData(
             'additional_service_ids',
-            data.additional_service_ids.includes(serviceId)
-                ? data.additional_service_ids.filter((id) => id !== serviceId)
-                : [...data.additional_service_ids, serviceId],
+            data.additional_service_ids.filter((id) => id !== serviceId),
         );
     };
+
+    const selectedHotels = data.hotel_ids
+        .map((id) => hotels.find((h) => h.id === id))
+        .filter((h): h is UmrahHotel => h !== undefined);
+    const selectedAirlines = data.airline_ids
+        .map((id) => airlines.find((a) => a.id === id))
+        .filter((a): a is UmrahAirline => a !== undefined);
+    const selectedTransportations = data.transportation_ids
+        .map((id) => transportations.find((t) => t.id === id))
+        .filter((t): t is UmrahTransportation => t !== undefined);
+    const selectedItineraries = data.itinerary_ids
+        .map((id) => itineraries.find((i) => i.id === id))
+        .filter((i): i is UmrahItinerary => i !== undefined);
+    const selectedAdditionalServices = data.additional_service_ids
+        .map((id) => additionalServices.find((s) => s.id === id))
+        .filter((s): s is UmrahAdditionalService => s !== undefined);
 
     const [newServiceTitle, setNewServiceTitle] = useState('');
 
@@ -559,205 +618,222 @@ export default function EditPackage({
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Select Hotels</Label>
-                                {hotels.length === 0 ? (
-                                    <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-                                        No hotels available.
-                                    </p>
-                                ) : (
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        {hotels.map((hotel) => (
-                                            <SelectionCard
-                                                key={hotel.id}
-                                                selected={data.hotel_ids.includes(hotel.id)}
-                                                onToggle={() => toggleHotel(hotel.id)}
-                                            >
-                                                <div className="flex gap-3">
-                                                    {hotel.image_url ? (
-                                                        <img
-                                                            src={hotel.image_url}
-                                                            alt={hotel.name}
-                                                            className="size-12 shrink-0 rounded-md object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-                                                            <Building2 className="size-6 text-muted-foreground" />
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate pr-6 text-sm font-medium">{hotel.name}</p>
-                                                        <div className="mt-1 flex items-center gap-0.5">
-                                                            {Array.from({ length: 5 }).map((_, i) => (
-                                                                <Star
-                                                                    key={i}
-                                                                    className={cn(
-                                                                        'size-3',
-                                                                        i < hotel.stars
-                                                                            ? 'fill-amber-400 text-amber-400'
-                                                                            : 'text-muted-foreground/30',
-                                                                    )}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                                                            <MapPin className="size-3 shrink-0" />
-                                                            {hotel.location}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </SelectionCard>
-                                        ))}
-                                    </div>
+                                <Label>Hotels</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Add hotels and set the number of nights spent in each
+                                    (default {DEFAULT_HOTEL_NIGHTS} nights).
+                                </p>
+                                <div className="space-y-2">
+                                    {selectedHotels.map((hotel) => (
+                                        <div
+                                            key={hotel.id}
+                                            className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center"
+                                        >
+                                            <div className="flex-1">
+                                                <HotelItem hotel={hotel} />
+                                            </div>
+                                            <div className="flex items-center gap-2 sm:border-l sm:pl-3">
+                                                <Moon className="size-3.5 shrink-0 text-muted-foreground" />
+                                                <Label
+                                                    htmlFor={`hotel_nights_${hotel.id}`}
+                                                    className="text-xs font-normal text-muted-foreground"
+                                                >
+                                                    Nights
+                                                </Label>
+                                                <Input
+                                                    id={`hotel_nights_${hotel.id}`}
+                                                    type="number"
+                                                    min={1}
+                                                    max={365}
+                                                    value={
+                                                        data.hotel_nights[hotel.id] ??
+                                                        DEFAULT_HOTEL_NIGHTS
+                                                    }
+                                                    onChange={(e) =>
+                                                        setHotelNights(hotel.id, e.target.value)
+                                                    }
+                                                    className="h-8 w-16 text-sm"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                                                    onClick={() => removeHotel(hotel.id)}
+                                                >
+                                                    <X className="size-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <ItemPickerDialog
+                                    triggerLabel="Add Hotel"
+                                    title="Add Hotel"
+                                    description="Pick a hotel to include in this package."
+                                    items={hotels}
+                                    selectedIds={data.hotel_ids}
+                                    onSelect={addHotel}
+                                    renderItem={(hotel) => <HotelItem hotel={hotel} />}
+                                    getSearchText={(hotel) => `${hotel.name} ${hotel.location}`}
+                                    emptyAvailableMessage="All hotels are already added."
+                                    emptyAllMessage="No hotels available. Add hotels first."
+                                />
+                                {errors.hotel_nights && (
+                                    <p className="text-sm text-destructive">{errors.hotel_nights}</p>
                                 )}
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Select Airlines</Label>
-                                {airlines.length === 0 ? (
-                                    <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-                                        No airlines available.
-                                    </p>
-                                ) : (
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        {airlines.map((airline) => (
-                                            <SelectionCard
-                                                key={airline.id}
-                                                selected={data.airline_ids.includes(airline.id)}
-                                                onToggle={() => toggleAirline(airline.id)}
+                                <Label>Airlines</Label>
+                                <div className="space-y-2">
+                                    {selectedAirlines.map((airline) => (
+                                        <div
+                                            key={airline.id}
+                                            className="flex items-center gap-3 rounded-lg border p-3"
+                                        >
+                                            <div className="flex-1">
+                                                <AirlineItem airline={airline} />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                                                onClick={() => removeAirline(airline.id)}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    {airline.logo_url ? (
-                                                        <img
-                                                            src={airline.logo_url}
-                                                            alt={airline.name}
-                                                            className="h-8 w-auto shrink-0 object-contain"
-                                                        />
-                                                    ) : (
-                                                        <Plane className="size-8 shrink-0 text-muted-foreground" />
-                                                    )}
-                                                    <p className="pr-6 text-sm font-medium">{airline.name}</p>
-                                                </div>
-                                            </SelectionCard>
-                                        ))}
-                                    </div>
-                                )}
+                                                <X className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <ItemPickerDialog
+                                    triggerLabel="Add Airline"
+                                    title="Add Airline"
+                                    description="Pick an airline to include in this package."
+                                    items={airlines}
+                                    selectedIds={data.airline_ids}
+                                    onSelect={addAirline}
+                                    renderItem={(airline) => <AirlineItem airline={airline} />}
+                                    getSearchText={(airline) => airline.name}
+                                    emptyAvailableMessage="All airlines are already added."
+                                    emptyAllMessage="No airlines available. Add airlines first."
+                                />
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Select Transportations</Label>
-                                {transportations.length === 0 ? (
-                                    <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-                                        No transportations available.
-                                    </p>
-                                ) : (
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        {transportations.map((transportation) => (
-                                            <SelectionCard
-                                                key={transportation.id}
-                                                selected={data.transportation_ids.includes(transportation.id)}
-                                                onToggle={() => toggleTransportation(transportation.id)}
+                                <Label>Transportations</Label>
+                                <div className="space-y-2">
+                                    {selectedTransportations.map((transportation) => (
+                                        <div
+                                            key={transportation.id}
+                                            className="flex items-center gap-3 rounded-lg border p-3"
+                                        >
+                                            <div className="flex-1">
+                                                <TransportationItem transportation={transportation} />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                                                onClick={() => removeTransportation(transportation.id)}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-white">
-                                                        {transportation.icon_url ? (
-                                                            <img
-                                                                src={transportation.icon_url}
-                                                                alt={transportation.name}
-                                                                className="size-5 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <Bus className="size-5 text-muted-foreground" />
-                                                        )}
-                                                    </div>
-                                                    <p className="pr-6 text-sm font-medium">{transportation.name}</p>
-                                                </div>
-                                            </SelectionCard>
-                                        ))}
-                                    </div>
-                                )}
+                                                <X className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <ItemPickerDialog
+                                    triggerLabel="Add Transportation"
+                                    title="Add Transportation"
+                                    description="Pick a transportation option to include in this package."
+                                    items={transportations}
+                                    selectedIds={data.transportation_ids}
+                                    onSelect={addTransportation}
+                                    renderItem={(transportation) => (
+                                        <TransportationItem transportation={transportation} />
+                                    )}
+                                    getSearchText={(transportation) => transportation.name}
+                                    emptyAvailableMessage="All transportations are already added."
+                                    emptyAllMessage="No transportations available. Add transportations first."
+                                />
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Select Itinerary</Label>
-                                {itineraries.length === 0 ? (
-                                    <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-                                        No itinerary items available.
-                                    </p>
-                                ) : (
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        {itineraries.map((itinerary) => (
-                                            <SelectionCard
-                                                key={itinerary.id}
-                                                selected={data.itinerary_ids.includes(itinerary.id)}
-                                                onToggle={() => toggleItinerary(itinerary.id)}
+                                <Label>Itinerary</Label>
+                                <div className="space-y-2">
+                                    {selectedItineraries.map((itinerary) => (
+                                        <div
+                                            key={itinerary.id}
+                                            className="flex items-center gap-3 rounded-lg border p-3"
+                                        >
+                                            <div className="flex-1">
+                                                <ItineraryItem itinerary={itinerary} />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                                                onClick={() => removeItinerary(itinerary.id)}
                                             >
-                                                <div className="flex gap-3">
-                                                    {itinerary.image_url ? (
-                                                        <img
-                                                            src={itinerary.image_url}
-                                                            alt={itinerary.title}
-                                                            className="size-12 shrink-0 rounded-md object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-                                                            <MapPin className="size-6 text-muted-foreground" />
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate pr-6 text-sm font-medium">{itinerary.title}</p>
-                                                        {itinerary.location && (
-                                                            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                                                                <MapPin className="size-3 shrink-0" />
-                                                                {itinerary.location}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </SelectionCard>
-                                        ))}
-                                    </div>
-                                )}
+                                                <X className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <ItemPickerDialog
+                                    triggerLabel="Add Itinerary"
+                                    title="Add Itinerary"
+                                    description="Pick an itinerary item to include in this package."
+                                    items={itineraries}
+                                    selectedIds={data.itinerary_ids}
+                                    onSelect={addItinerary}
+                                    renderItem={(itinerary) => <ItineraryItem itinerary={itinerary} />}
+                                    getSearchText={(itinerary) =>
+                                        `${itinerary.title} ${itinerary.location ?? ''}`
+                                    }
+                                    emptyAvailableMessage="All itinerary items are already added."
+                                    emptyAllMessage="No itinerary items available. Add itinerary items first."
+                                />
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Select Additional Services</Label>
-                                {additionalServices.length === 0 ? (
-                                    <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-                                        No additional services available.
-                                    </p>
-                                ) : (
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        {additionalServices.map((service) => (
-                                            <SelectionCard
-                                                key={service.id}
-                                                selected={data.additional_service_ids.includes(service.id)}
-                                                onToggle={() => toggleAdditionalService(service.id)}
+                                <Label>Additional Services</Label>
+                                <div className="space-y-2">
+                                    {selectedAdditionalServices.map((service) => (
+                                        <div
+                                            key={service.id}
+                                            className="flex items-center gap-3 rounded-lg border p-3"
+                                        >
+                                            <div className="flex-1">
+                                                <AdditionalServiceItem service={service} />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                                                onClick={() => removeAdditionalService(service.id)}
                                             >
-                                                <div className="flex gap-3">
-                                                    {service.image_url ? (
-                                                        <img
-                                                            src={service.image_url}
-                                                            alt={service.title}
-                                                            className="size-12 shrink-0 rounded-md object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-                                                            <Star className="size-5 text-muted-foreground" />
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate pr-6 text-sm font-medium">{service.title}</p>
-                                                        {service.description && (
-                                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                                                                {service.description}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </SelectionCard>
-                                        ))}
-                                    </div>
-                                )}
+                                                <X className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <ItemPickerDialog
+                                    triggerLabel="Add Additional Service"
+                                    title="Add Additional Service"
+                                    description="Pick an additional service to include in this package."
+                                    items={additionalServices}
+                                    selectedIds={data.additional_service_ids}
+                                    onSelect={addAdditionalService}
+                                    renderItem={(service) => <AdditionalServiceItem service={service} />}
+                                    getSearchText={(service) => service.title}
+                                    emptyAvailableMessage="All additional services are already added."
+                                    emptyAllMessage="No additional services available. Add additional services first."
+                                />
                             </div>
 
                             <div className="space-y-2">

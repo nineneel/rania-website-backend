@@ -147,6 +147,10 @@ export interface UmrahHotel {
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    pivot?: {
+        order?: number;
+        total_nights?: number;
+    };
 }
 
 export interface UmrahPackage {
@@ -270,6 +274,7 @@ export interface UmrahPackageFormData {
     link: string;
     is_active: boolean;
     hotel_ids: number[];
+    hotel_nights: Record<number, number>;
     airline_ids: number[];
     transportation_ids: number[];
     itinerary_ids: number[];

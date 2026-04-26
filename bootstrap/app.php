@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\FileUploadFailedException;
+use App\Http\Middleware\EnforcePostMaxSize;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -7,6 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,7 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        $middleware->web(append: [
+        $middleware->web(prepend: [
+            EnforcePostMaxSize::class,
+        ], append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
@@ -29,5 +34,18 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (FileUploadFailedException $e, Request $request) {
+            $message = 'Failed to save the uploaded file. Please try again.';
+
+            if ($request->header('X-Inertia') || $request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'errors' => ['image' => [$message]],
+                ], 422);
+            }
+
+            return back()
+                ->withErrors(['image' => $message])
+                ->withInput();
+        });
     })->create();

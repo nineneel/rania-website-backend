@@ -48,6 +48,8 @@ class UpdateUmrahPackageRequest extends FormRequest
             'is_active' => ['boolean'],
             'hotel_ids' => ['nullable', 'array'],
             'hotel_ids.*' => ['exists:umrah_hotels,id'],
+            'hotel_nights' => ['nullable', 'array'],
+            'hotel_nights.*' => ['integer', 'min:1', 'max:365'],
             'airline_ids' => ['nullable', 'array'],
             'airline_ids.*' => ['exists:umrah_airlines,id'],
             'transportation_ids' => ['nullable', 'array'],

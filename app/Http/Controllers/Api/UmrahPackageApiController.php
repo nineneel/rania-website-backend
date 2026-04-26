@@ -105,6 +105,7 @@ class UmrahPackageApiController extends Controller
                         'description' => $hotel->description,
                         'image_url' => $hotel->image_url,
                         'order' => $hotel->pivot->order,
+                        'total_nights' => (int) $hotel->pivot->total_nights,
                     ];
                 }),
                 'airlines' => $package->airlines->map(function ($airline) {
@@ -212,6 +213,7 @@ class UmrahPackageApiController extends Controller
                         'description' => $hotel->description,
                         'image_url' => $hotel->image_url,
                         'order' => $hotel->pivot->order,
+                        'total_nights' => (int) $hotel->pivot->total_nights,
                     ];
                 }),
                 'airlines' => $package->airlines->map(function ($airline) {

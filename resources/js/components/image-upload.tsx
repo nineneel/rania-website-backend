@@ -10,6 +10,7 @@ interface ImageUploadProps {
     error?: string;
     className?: string;
     accept?: string;
+    maxSizeMb?: number;
 }
 
 export function ImageUpload({
@@ -18,20 +19,37 @@ export function ImageUpload({
     error,
     className,
     accept = 'image/png,image/jpeg,image/jpg,image/webp',
+    maxSizeMb = 2,
 }: ImageUploadProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [sizeError, setSizeError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (file: File | null) => {
-        if (file && (file.type.startsWith('image/') || file.type === 'image/svg+xml')) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-            onChange(file);
+        if (!file) {
+            return;
         }
+
+        if (!(file.type.startsWith('image/') || file.type === 'image/svg+xml')) {
+            return;
+        }
+
+        const maxBytes = maxSizeMb * 1024 * 1024;
+        if (file.size > maxBytes) {
+            setSizeError(
+                `File "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum allowed is ${maxSizeMb}MB.`,
+            );
+            return;
+        }
+
+        setSizeError(null);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+        onChange(file);
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +77,7 @@ export function ImageUpload({
 
     const handleRemove = () => {
         setPreview(null);
+        setSizeError(null);
         onChange(null);
         if (inputRef.current) {
             inputRef.current.value = '';
@@ -79,7 +98,7 @@ export function ImageUpload({
                     isDragging
                         ? 'border-primary bg-primary/5'
                         : 'border-gray-300 hover:border-primary',
-                    error ? 'border-red-500' : '',
+                    error || sizeError ? 'border-red-500' : '',
                     displayImage ? 'p-0' : 'p-8',
                 )}
             >
@@ -116,7 +135,7 @@ export function ImageUpload({
                                 <span className="text-primary">browse</span>
                             </p>
                             <p className="text-xs text-gray-500">
-                                PNG, JPG, WEBP up to 2MB
+                                PNG, JPG, WEBP up to {maxSizeMb}MB
                             </p>
                         </div>
                     </div>
@@ -129,7 +148,9 @@ export function ImageUpload({
                     className="hidden"
                 />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {(sizeError || error) && (
+                <p className="text-sm text-red-500">{sizeError ?? error}</p>
+            )}
         </div>
     );
 }

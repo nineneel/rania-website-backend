@@ -52,7 +52,7 @@ class UmrahPackage extends Model
     public function hotels(): BelongsToMany
     {
         return $this->belongsToMany(UmrahHotel::class, 'umrah_package_hotel')
-            ->withPivot('order')
+            ->withPivot('order', 'total_nights')
             ->orderBy('umrah_package_hotel.order');
     }
 

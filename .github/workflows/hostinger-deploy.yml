@@ -234,7 +234,10 @@ jobs:
             
             # Run migrations
             php artisan migrate --force
-            
+
+            # Ensure the public storage symlink exists so uploaded images are served
+            php artisan storage:link || true
+
             # Clear and cache configuration
             php artisan config:clear
             php artisan config:cache

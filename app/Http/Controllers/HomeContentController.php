@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\HeroSlide;
 use App\Models\User;
+use App\Services\UploadedFileStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,10 +13,10 @@ use Inertia\Inertia;
 
 class HomeContentController extends Controller
 {
+    use UploadedFileStorage;
+
     /**
      * Get the authenticated user.
-     *
-     * @return User
      */
     protected function user(): User
     {
@@ -28,7 +29,7 @@ class HomeContentController extends Controller
     public function index(Request $request)
     {
         // Check if user can manage home content
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -49,7 +50,7 @@ class HomeContentController extends Controller
      */
     public function indexHeroSlides()
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -67,7 +68,7 @@ class HomeContentController extends Controller
      */
     public function createHeroSlide()
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -81,7 +82,7 @@ class HomeContentController extends Controller
      */
     public function editHeroSlide(HeroSlide $heroSlide)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -97,7 +98,7 @@ class HomeContentController extends Controller
      */
     public function indexEvents()
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -115,7 +116,7 @@ class HomeContentController extends Controller
      */
     public function createEvent()
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -129,7 +130,7 @@ class HomeContentController extends Controller
      */
     public function editEvent(Event $event)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage home content.',
             ])->toResponse(request())->setStatusCode(403);
@@ -145,7 +146,7 @@ class HomeContentController extends Controller
      */
     public function storeHeroSlide(Request $request)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -161,8 +162,7 @@ class HomeContentController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('hero-slides', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'hero-slides');
         }
 
         HeroSlide::create($validated);
@@ -176,7 +176,7 @@ class HomeContentController extends Controller
      */
     public function updateHeroSlide(Request $request, HeroSlide $heroSlide)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -189,13 +189,13 @@ class HomeContentController extends Controller
 
         // Handle image upload if new image provided
         if ($request->hasFile('image')) {
-            // Delete old image
+            $newImagePath = $this->storeUploadedFile($request->file('image'), 'hero-slides');
+
             if ($heroSlide->image_path) {
                 Storage::disk('public')->delete($heroSlide->image_path);
             }
 
-            $imagePath = $request->file('image')->store('hero-slides', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $newImagePath;
         }
 
         $heroSlide->update($validated);
@@ -209,7 +209,7 @@ class HomeContentController extends Controller
      */
     public function destroyHeroSlide(HeroSlide $heroSlide)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -229,7 +229,7 @@ class HomeContentController extends Controller
      */
     public function updateHeroSlidesOrder(Request $request)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -251,7 +251,7 @@ class HomeContentController extends Controller
      */
     public function storeEvent(Request $request)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -268,8 +268,7 @@ class HomeContentController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('events', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'events');
         }
 
         Event::create($validated);
@@ -283,7 +282,7 @@ class HomeContentController extends Controller
      */
     public function updateEvent(Request $request, Event $event)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -297,13 +296,13 @@ class HomeContentController extends Controller
 
         // Handle image upload if new image provided
         if ($request->hasFile('image')) {
-            // Delete old image
+            $newImagePath = $this->storeUploadedFile($request->file('image'), 'events');
+
             if ($event->image_path) {
                 Storage::disk('public')->delete($event->image_path);
             }
 
-            $imagePath = $request->file('image')->store('events', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $newImagePath;
         }
 
         $event->update($validated);
@@ -317,7 +316,7 @@ class HomeContentController extends Controller
      */
     public function destroyEvent(Event $event)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 
@@ -337,7 +336,7 @@ class HomeContentController extends Controller
      */
     public function updateEventsOrder(Request $request)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage home content.');
         }
 

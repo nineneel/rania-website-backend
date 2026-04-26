@@ -397,3 +397,111 @@ test('admin users can update package relation sync and package services', functi
     expect($package->services()->first()->title)->toBe('Updated Service 1');
     expect($package->images()->count())->toBe(4);
 });
+
+test('package hotels store with custom total nights and default to 3 when missing', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $hotelWithNights = UmrahHotel::create([
+        'name' => 'Hotel Custom',
+        'stars' => 5,
+        'location' => 'Madinah',
+        'is_active' => true,
+    ]);
+
+    $hotelDefault = UmrahHotel::create([
+        'name' => 'Hotel Default',
+        'stars' => 4,
+        'location' => 'Makkah',
+        'is_active' => true,
+    ]);
+
+    $airline = UmrahAirline::create([
+        'name' => 'Airline A',
+        'logo_path' => 'umrah/airlines/a.png',
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($user)->post(route('umrah-content.packages.store'), [
+        'title' => 'Hotel Nights Package',
+        'slug' => 'hotel-nights-package',
+        'description' => 'Package description',
+        'image' => UploadedFile::fake()->image('package.jpg'),
+        'gallery_images' => [
+            UploadedFile::fake()->image('gallery-1.jpg'),
+            UploadedFile::fake()->image('gallery-2.jpg'),
+            UploadedFile::fake()->image('gallery-3.jpg'),
+            UploadedFile::fake()->image('gallery-4.jpg'),
+        ],
+        'departure' => 'Jakarta',
+        'duration' => '9 days',
+        'departure_schedule' => 'Weekly',
+        'price_idr' => 5000,
+        'is_active' => true,
+        'hotel_ids' => [$hotelWithNights->id, $hotelDefault->id],
+        'hotel_nights' => [$hotelWithNights->id => 5],
+        'airline_ids' => [$airline->id],
+    ]);
+
+    $response->assertRedirect(route('umrah-content.packages.index'));
+
+    $package = UmrahPackage::first();
+
+    expect($package->hotels()->where('umrah_hotels.id', $hotelWithNights->id)->first()->pivot->total_nights)
+        ->toBe(5);
+    expect($package->hotels()->where('umrah_hotels.id', $hotelDefault->id)->first()->pivot->total_nights)
+        ->toBe(3);
+});
+
+test('package update syncs hotel total nights', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $hotel = UmrahHotel::create([
+        'name' => 'Hotel A',
+        'stars' => 5,
+        'location' => 'Madinah',
+        'is_active' => true,
+    ]);
+
+    $package = UmrahPackage::create([
+        'title' => 'Package A',
+        'slug' => 'package-a',
+        'description' => 'Description',
+        'image_path' => 'umrah/packages/a.jpg',
+        'departure' => 'Jakarta',
+        'duration' => '9 days',
+        'departure_schedule' => 'Weekly',
+        'price_idr' => 5000,
+        'is_active' => true,
+        'order' => 0,
+    ]);
+
+    $package->hotels()->attach($hotel->id, ['order' => 0, 'total_nights' => 3]);
+    $package->images()->createMany([
+        ['image_path' => 'umrah/packages/gallery/a-1.jpg', 'order' => 0],
+        ['image_path' => 'umrah/packages/gallery/a-2.jpg', 'order' => 1],
+        ['image_path' => 'umrah/packages/gallery/a-3.jpg', 'order' => 2],
+        ['image_path' => 'umrah/packages/gallery/a-4.jpg', 'order' => 3],
+    ]);
+
+    $existingGalleryImageIds = $package->images()->pluck('id')->all();
+
+    $response = $this->actingAs($user)->put(route('umrah-content.packages.update', $package), [
+        'title' => 'Package A',
+        'slug' => 'package-a',
+        'description' => 'Description',
+        'existing_gallery_image_ids' => $existingGalleryImageIds,
+        'departure' => 'Jakarta',
+        'duration' => '9 days',
+        'departure_schedule' => 'Weekly',
+        'price_idr' => 5000,
+        'is_active' => true,
+        'hotel_ids' => [$hotel->id],
+        'hotel_nights' => [$hotel->id => 7],
+    ]);
+
+    $response->assertRedirect(route('umrah-content.packages.index'));
+
+    expect($package->hotels()->first()->pivot->total_nights)->toBe(7);
+});

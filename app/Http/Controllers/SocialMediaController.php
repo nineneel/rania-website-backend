@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SocialMedia;
 use App\Models\User;
+use App\Services\UploadedFileStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -11,10 +12,10 @@ use Inertia\Inertia;
 
 class SocialMediaController extends Controller
 {
+    use UploadedFileStorage;
+
     /**
      * Get the authenticated user.
-     *
-     * @return User
      */
     protected function user(): User
     {
@@ -26,7 +27,7 @@ class SocialMediaController extends Controller
      */
     public function index()
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage social media.',
             ])->toResponse(request())->setStatusCode(403);
@@ -44,7 +45,7 @@ class SocialMediaController extends Controller
      */
     public function create()
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage social media.',
             ])->toResponse(request())->setStatusCode(403);
@@ -58,7 +59,7 @@ class SocialMediaController extends Controller
      */
     public function store(Request $request)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage social media.');
         }
 
@@ -74,8 +75,7 @@ class SocialMediaController extends Controller
 
         // Handle icon upload
         if ($request->hasFile('icon')) {
-            $iconPath = $request->file('icon')->store('social-media', 'public');
-            $validated['icon_path'] = $iconPath;
+            $validated['icon_path'] = $this->storeUploadedFile($request->file('icon'), 'social-media');
             unset($validated['icon']); // Remove icon from validated data
         }
 
@@ -90,7 +90,7 @@ class SocialMediaController extends Controller
      */
     public function edit(SocialMedia $socialMedia)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             return Inertia::render('errors/403', [
                 'message' => 'You do not have permission to manage social media.',
             ])->toResponse(request())->setStatusCode(403);
@@ -106,7 +106,7 @@ class SocialMediaController extends Controller
      */
     public function update(Request $request, SocialMedia $socialMedia)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage social media.');
         }
 
@@ -119,17 +119,16 @@ class SocialMediaController extends Controller
 
         // Handle icon upload if new icon provided
         if ($request->hasFile('icon')) {
-            // Delete old icon
+            $newIconPath = $this->storeUploadedFile($request->file('icon'), 'social-media');
+
             if ($socialMedia->icon_path) {
                 Storage::disk('public')->delete($socialMedia->icon_path);
             }
 
-            $iconPath = $request->file('icon')->store('social-media', 'public');
-            $validated['icon_path'] = $iconPath;
-            unset($validated['icon']); // Remove icon from validated data
-        } else {
-            unset($validated['icon']); // Remove icon from validated data if not provided
+            $validated['icon_path'] = $newIconPath;
         }
+
+        unset($validated['icon']); // Never persist the raw file field
 
         $socialMedia->update($validated);
 
@@ -142,7 +141,7 @@ class SocialMediaController extends Controller
      */
     public function destroy(SocialMedia $socialMedia)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage social media.');
         }
 
@@ -162,7 +161,7 @@ class SocialMediaController extends Controller
      */
     public function updateOrder(Request $request)
     {
-        if (!$this->user()->canManageHomeContent()) {
+        if (! $this->user()->canManageHomeContent()) {
             abort(403, 'You do not have permission to manage social media.');
         }
 

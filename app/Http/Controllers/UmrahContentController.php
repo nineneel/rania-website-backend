@@ -20,6 +20,7 @@ use App\Models\UmrahItinerary;
 use App\Models\UmrahPackage;
 use App\Models\UmrahTransportation;
 use App\Models\User;
+use App\Services\UploadedFileStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,8 @@ use Inertia\Inertia;
 
 class UmrahContentController extends Controller
 {
+    use UploadedFileStorage;
+
     /**
      * Get the authenticated user.
      */
@@ -107,8 +110,7 @@ class UmrahContentController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('umrah/airlines', 'public');
-            $validated['logo_path'] = $logoPath;
+            $validated['logo_path'] = $this->storeUploadedFile($request->file('logo'), 'umrah/airlines');
         }
 
         UmrahAirline::create($validated);
@@ -150,13 +152,13 @@ class UmrahContentController extends Controller
 
         // Handle logo upload if new logo provided
         if ($request->hasFile('logo')) {
-            // Delete old logo
+            $newLogoPath = $this->storeUploadedFile($request->file('logo'), 'umrah/airlines');
+
             if ($airline->logo_path) {
                 Storage::disk('public')->delete($airline->logo_path);
             }
 
-            $logoPath = $request->file('logo')->store('umrah/airlines', 'public');
-            $validated['logo_path'] = $logoPath;
+            $validated['logo_path'] = $newLogoPath;
         }
 
         $airline->update($validated);
@@ -239,8 +241,7 @@ class UmrahContentController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('umrah/hotels', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'umrah/hotels');
         }
 
         UmrahHotel::create($validated);
@@ -285,13 +286,13 @@ class UmrahContentController extends Controller
 
         // Handle image upload if new image provided
         if ($request->hasFile('image')) {
-            // Delete old image
+            $newImagePath = $this->storeUploadedFile($request->file('image'), 'umrah/hotels');
+
             if ($hotel->image_path) {
                 Storage::disk('public')->delete($hotel->image_path);
             }
 
-            $imagePath = $request->file('image')->store('umrah/hotels', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $newImagePath;
         }
 
         $hotel->update($validated);
@@ -363,8 +364,7 @@ class UmrahContentController extends Controller
         $validated['order'] = (UmrahTransportation::max('order') ?? -1) + 1;
 
         if ($request->hasFile('icon')) {
-            $iconPath = $request->file('icon')->store('umrah/transportations', 'public');
-            $validated['icon_path'] = $iconPath;
+            $validated['icon_path'] = $this->storeUploadedFile($request->file('icon'), 'umrah/transportations');
         }
 
         UmrahTransportation::create($validated);
@@ -397,12 +397,13 @@ class UmrahContentController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('icon')) {
+            $newIconPath = $this->storeUploadedFile($request->file('icon'), 'umrah/transportations');
+
             if ($transportation->icon_path) {
                 Storage::disk('public')->delete($transportation->icon_path);
             }
 
-            $iconPath = $request->file('icon')->store('umrah/transportations', 'public');
-            $validated['icon_path'] = $iconPath;
+            $validated['icon_path'] = $newIconPath;
         }
 
         $transportation->update($validated);
@@ -473,8 +474,7 @@ class UmrahContentController extends Controller
         $validated['order'] = (UmrahItinerary::max('order') ?? -1) + 1;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('umrah/itineraries', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'umrah/itineraries');
         }
 
         UmrahItinerary::create($validated);
@@ -507,12 +507,13 @@ class UmrahContentController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
+            $newImagePath = $this->storeUploadedFile($request->file('image'), 'umrah/itineraries');
+
             if ($itinerary->image_path) {
                 Storage::disk('public')->delete($itinerary->image_path);
             }
 
-            $imagePath = $request->file('image')->store('umrah/itineraries', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $newImagePath;
         }
 
         $itinerary->update($validated);
@@ -583,8 +584,7 @@ class UmrahContentController extends Controller
         $validated['order'] = (UmrahAdditionalService::max('order') ?? -1) + 1;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('umrah/additional-services', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'umrah/additional-services');
         }
 
         UmrahAdditionalService::create($validated);
@@ -617,12 +617,13 @@ class UmrahContentController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
+            $newImagePath = $this->storeUploadedFile($request->file('image'), 'umrah/additional-services');
+
             if ($additionalService->image_path) {
                 Storage::disk('public')->delete($additionalService->image_path);
             }
 
-            $imagePath = $request->file('image')->store('umrah/additional-services', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $newImagePath;
         }
 
         $additionalService->update($validated);
@@ -796,6 +797,7 @@ class UmrahContentController extends Controller
         $validated = $request->validated();
 
         $hotelIds = $validated['hotel_ids'] ?? [];
+        $hotelNights = $validated['hotel_nights'] ?? [];
         $airlineIds = $validated['airline_ids'] ?? [];
         $transportationIds = $validated['transportation_ids'] ?? [];
         $itineraryIds = $validated['itinerary_ids'] ?? [];
@@ -807,6 +809,7 @@ class UmrahContentController extends Controller
             $validated['image'],
             $validated['gallery_images'],
             $validated['hotel_ids'],
+            $validated['hotel_nights'],
             $validated['airline_ids'],
             $validated['transportation_ids'],
             $validated['itinerary_ids'],
@@ -819,18 +822,20 @@ class UmrahContentController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('umrah/packages', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'umrah/packages');
         }
 
         $package = UmrahPackage::create($validated);
         $this->storeGalleryImages($package, is_array($galleryImages) ? $galleryImages : []);
 
-        // Attach hotels with order
+        // Attach hotels with order and total nights (default 3)
         if (is_array($hotelIds)) {
             $hotelData = [];
             foreach ($hotelIds as $index => $hotelId) {
-                $hotelData[$hotelId] = ['order' => $index];
+                $hotelData[$hotelId] = [
+                    'order' => $index,
+                    'total_nights' => $this->resolveHotelNights($hotelNights, $hotelId),
+                ];
             }
             $package->hotels()->attach($hotelData);
         }
@@ -927,6 +932,7 @@ class UmrahContentController extends Controller
         $validated = $request->validated();
 
         $hotelIds = $validated['hotel_ids'] ?? [];
+        $hotelNights = $validated['hotel_nights'] ?? [];
         $airlineIds = $validated['airline_ids'] ?? [];
         $transportationIds = $validated['transportation_ids'] ?? [];
         $itineraryIds = $validated['itinerary_ids'] ?? [];
@@ -940,6 +946,7 @@ class UmrahContentController extends Controller
             $validated['gallery_images'],
             $validated['existing_gallery_image_ids'],
             $validated['hotel_ids'],
+            $validated['hotel_nights'],
             $validated['airline_ids'],
             $validated['transportation_ids'],
             $validated['itinerary_ids'],
@@ -949,21 +956,24 @@ class UmrahContentController extends Controller
 
         // Handle image upload if new image provided
         if ($request->hasFile('image')) {
-            // Delete old image
+            $newImagePath = $this->storeUploadedFile($request->file('image'), 'umrah/packages');
+
             if ($package->image_path) {
                 Storage::disk('public')->delete($package->image_path);
             }
 
-            $imagePath = $request->file('image')->store('umrah/packages', 'public');
-            $validated['image_path'] = $imagePath;
+            $validated['image_path'] = $newImagePath;
         }
 
         $package->update($validated);
 
-        // Sync hotels with order
+        // Sync hotels with order and total nights (default 3)
         $hotelData = [];
         foreach ($hotelIds as $index => $hotelId) {
-            $hotelData[$hotelId] = ['order' => $index];
+            $hotelData[$hotelId] = [
+                'order' => $index,
+                'total_nights' => $this->resolveHotelNights($hotelNights, $hotelId),
+            ];
         }
         $package->hotels()->sync($hotelData);
 
@@ -1065,6 +1075,19 @@ class UmrahContentController extends Controller
     }
 
     /**
+     * Resolve the total nights for a hotel from the request map, defaulting to 3.
+     *
+     * @param  array<int|string, mixed>  $hotelNights
+     */
+    protected function resolveHotelNights(array $hotelNights, int $hotelId): int
+    {
+        $value = $hotelNights[$hotelId] ?? $hotelNights[(string) $hotelId] ?? null;
+        $nights = is_numeric($value) ? (int) $value : 0;
+
+        return $nights > 0 ? $nights : 3;
+    }
+
+    /**
      * Store detail gallery images for a package.
      *
      * @param  array<int, UploadedFile>  $galleryImages
@@ -1072,7 +1095,7 @@ class UmrahContentController extends Controller
     protected function storeGalleryImages(UmrahPackage $package, array $galleryImages): void
     {
         foreach ($galleryImages as $index => $galleryImage) {
-            $imagePath = $galleryImage->store('umrah/packages/gallery', 'public');
+            $imagePath = $this->storeUploadedFile($galleryImage, 'umrah/packages/gallery');
 
             $package->images()->create([
                 'image_path' => $imagePath,
@@ -1112,7 +1135,7 @@ class UmrahContentController extends Controller
         $nextOrder = $retainedImages->count();
 
         foreach ($newGalleryImages as $galleryImage) {
-            $imagePath = $galleryImage->store('umrah/packages/gallery', 'public');
+            $imagePath = $this->storeUploadedFile($galleryImage, 'umrah/packages/gallery');
 
             $package->images()->create([
                 'image_path' => $imagePath,

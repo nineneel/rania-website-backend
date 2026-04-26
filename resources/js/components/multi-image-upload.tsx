@@ -11,6 +11,7 @@ interface MultiImageUploadProps {
     accept?: string;
     minCount?: number;
     compact?: boolean;
+    maxSizeMb?: number;
 }
 
 const isImageFile = (file: File): boolean => {
@@ -41,9 +42,11 @@ export function MultiImageUpload({
     accept = 'image/png,image/jpeg,image/jpg,image/webp',
     minCount,
     compact = false,
+    maxSizeMb = 4,
 }: MultiImageUploadProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [sizeError, setSizeError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -57,7 +60,20 @@ export function MultiImageUpload({
 
     const mergeFiles = (files: File[]) => {
         const imageFiles = files.filter((file) => isImageFile(file));
-        onChange(toUniqueFiles([...value, ...imageFiles]));
+        const maxBytes = maxSizeMb * 1024 * 1024;
+        const oversized = imageFiles.filter((file) => file.size > maxBytes);
+
+        if (oversized.length > 0) {
+            const names = oversized.map((file) => file.name).join(', ');
+            setSizeError(
+                `Skipped: ${names} (each file must be ${maxSizeMb}MB or smaller).`,
+            );
+        } else {
+            setSizeError(null);
+        }
+
+        const accepted = imageFiles.filter((file) => file.size <= maxBytes);
+        onChange(toUniqueFiles([...value, ...accepted]));
     };
 
     const handleDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -114,7 +130,7 @@ export function MultiImageUpload({
                     isDragging
                         ? 'border-primary bg-primary/5'
                         : 'border-gray-300 hover:border-primary',
-                    error ? 'border-red-500' : '',
+                    error || sizeError ? 'border-red-500' : '',
                 )}
             >
                 {compact ? (
@@ -133,7 +149,7 @@ export function MultiImageUpload({
                             <p className="text-sm font-medium">
                                 Drop your images here, or <span className="text-primary">browse</span>
                             </p>
-                            <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 2MB each</p>
+                            <p className="text-xs text-gray-500">PNG, JPG, WEBP up to {maxSizeMb}MB each</p>
                         </div>
                     </div>
                 )}
@@ -157,7 +173,9 @@ export function MultiImageUpload({
                     : `Selected ${value.length} image(s).`}
             </p>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {(sizeError || error) && (
+                <p className="text-sm text-red-500">{sizeError ?? error}</p>
+            )}
         </div>
     );
 }
