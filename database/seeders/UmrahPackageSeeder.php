@@ -32,49 +32,39 @@ class UmrahPackageSeeder extends Seeder
         );
 
         // Create Hotels
-        $madenHotel = UmrahHotel::firstOrCreate(
-            ['name' => 'Maden Hotel madinah'],
-            [
-                'stars' => 5,
-                'location' => 'Madinah',
-                'description' => 'Premium 5-star accommodation in Madinah',
-                'image_path' => 'hotels/maden-hotel-madinah.jpg',
-                'is_active' => true,
-            ]
-        );
+        $hotelSeeds = [
+            ['name' => 'Maden Hotel madinah', 'stars' => 5, 'location' => 'Madinah', 'description' => 'Premium 5-star accommodation in Madinah', 'image_path' => 'hotels/maden-hotel-madinah.jpg'],
+            ['name' => 'Marwa Rotana hotel Makkah', 'stars' => 5, 'location' => 'Makkah', 'description' => 'Premium 5-star accommodation in Makkah', 'image_path' => 'hotels/marwa-rotana-makkah.jpg'],
+            ['name' => 'Ansar Golden Tulip', 'stars' => 4, 'location' => 'Madinah', 'description' => 'Comfortable 4-star accommodation in Madinah', 'image_path' => 'hotels/ansar-golden-tulip.jpg'],
+            ['name' => 'Makarem Ajyad Hotel', 'stars' => 4, 'location' => 'Makkah', 'description' => 'Comfortable 4-star accommodation in Makkah', 'image_path' => 'hotels/makarem-ajyad.jpg'],
+        ];
 
-        $marwaRotana = UmrahHotel::firstOrCreate(
-            ['name' => 'Marwa Rotana hotel Makkah'],
-            [
-                'stars' => 5,
-                'location' => 'Makkah',
-                'description' => 'Premium 5-star accommodation in Makkah',
-                'image_path' => 'hotels/marwa-rotana-makkah.jpg',
-                'is_active' => true,
-            ]
-        );
+        $hotelLookup = [];
+        foreach ($hotelSeeds as $seed) {
+            $hotel = UmrahHotel::firstOrCreate(
+                ['name' => $seed['name']],
+                [
+                    'stars' => $seed['stars'],
+                    'location' => $seed['location'],
+                    'description' => $seed['description'],
+                    'is_active' => true,
+                ]
+            );
 
-        $ansarGoldenTulip = UmrahHotel::firstOrCreate(
-            ['name' => 'Ansar Golden Tulip'],
-            [
-                'stars' => 4,
-                'location' => 'Madinah',
-                'description' => 'Comfortable 4-star accommodation in Madinah',
-                'image_path' => 'hotels/ansar-golden-tulip.jpg',
-                'is_active' => true,
-            ]
-        );
+            if ($hotel->images()->count() === 0) {
+                $hotel->images()->create([
+                    'image_path' => $seed['image_path'],
+                    'order' => 0,
+                ]);
+            }
 
-        $makaremAjyad = UmrahHotel::firstOrCreate(
-            ['name' => 'Makarem Ajyad Hotel'],
-            [
-                'stars' => 4,
-                'location' => 'Makkah',
-                'description' => 'Comfortable 4-star accommodation in Makkah',
-                'image_path' => 'hotels/makarem-ajyad.jpg',
-                'is_active' => true,
-            ]
-        );
+            $hotelLookup[$seed['name']] = $hotel;
+        }
+
+        $madenHotel = $hotelLookup['Maden Hotel madinah'];
+        $marwaRotana = $hotelLookup['Marwa Rotana hotel Makkah'];
+        $ansarGoldenTulip = $hotelLookup['Ansar Golden Tulip'];
+        $makaremAjyad = $hotelLookup['Makarem Ajyad Hotel'];
 
         // Create Packages
         $packages = [

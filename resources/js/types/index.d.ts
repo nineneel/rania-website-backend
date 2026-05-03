@@ -136,14 +136,21 @@ export interface UmrahAirline {
     updated_at: string;
 }
 
+export interface UmrahHotelImage {
+    id: number;
+    image_path?: string;
+    image_url?: string;
+    order: number;
+}
+
 export interface UmrahHotel {
     id: number;
     name: string;
     stars: number;
     location: string;
     description?: string;
-    image_path?: string;
     image_url?: string;
+    images?: UmrahHotelImage[];
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -252,7 +259,8 @@ export interface UmrahHotelFormData {
     stars: number;
     location: string;
     description: string;
-    image: File | null;
+    images: File[];
+    existing_image_ids: number[];
     is_active: boolean;
 }
 

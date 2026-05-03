@@ -1,4 +1,4 @@
-import { ImageUpload } from '@/components/image-upload';
+import { MultiImageUpload } from '@/components/multi-image-upload';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -17,6 +17,8 @@ import { type BreadcrumbItem, type UmrahHotelFormData } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { FormEvent } from 'react';
+
+const MAX_HOTEL_IMAGES = 5;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -39,7 +41,8 @@ export default function CreateHotel() {
         stars: 5,
         location: '',
         description: '',
-        image: null,
+        images: [],
+        existing_image_ids: [],
         is_active: true,
     });
 
@@ -48,6 +51,10 @@ export default function CreateHotel() {
         post('/umrah-content/hotels', {
             forceFormData: true,
         });
+    };
+
+    const handleImagesChange = (files: File[]) => {
+        setData('images', files.slice(0, MAX_HOTEL_IMAGES));
     };
 
     return (
@@ -149,15 +156,19 @@ export default function CreateHotel() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="image">Image (Optional)</Label>
-                                <ImageUpload
-                                    value={data.image}
-                                    onChange={(file) => setData('image', file)}
-                                    error={errors.image}
+                                <Label>Images (up to {MAX_HOTEL_IMAGES})</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    The first image is used as the thumbnail. Add up to{' '}
+                                    {MAX_HOTEL_IMAGES} images for the carousel.
+                                </p>
+                                <MultiImageUpload
+                                    value={data.images}
+                                    onChange={handleImagesChange}
+                                    error={errors.images as string | undefined}
                                 />
-                                {errors.image && (
-                                    <p className="text-sm text-destructive">
-                                        {errors.image}
+                                {data.images.length >= MAX_HOTEL_IMAGES && (
+                                    <p className="text-xs text-amber-600">
+                                        Maximum of {MAX_HOTEL_IMAGES} images reached.
                                     </p>
                                 )}
                             </div>

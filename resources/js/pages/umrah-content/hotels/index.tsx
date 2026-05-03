@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type UmrahHotel } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Edit, Plus, Star, Trash2 } from 'lucide-react';
+import { Building2, Edit, Plus, Star, Trash2 } from 'lucide-react';
 
 interface HotelsIndexProps {
     hotels: UmrahHotel[];
@@ -66,6 +66,9 @@ export default function HotelsIndex({ hotels }: HotelsIndexProps) {
                                 <table className="w-full">
                                     <thead className="border-b">
                                         <tr className="text-sm text-muted-foreground">
+                                            <th className="w-20 p-3 text-left font-medium">
+                                                Image
+                                            </th>
                                             <th className="p-3 text-left font-medium">
                                                 Name
                                             </th>
@@ -89,7 +92,27 @@ export default function HotelsIndex({ hotels }: HotelsIndexProps) {
                                                 key={hotel.id}
                                                 className="border-b last:border-0 hover:bg-muted/50"
                                             >
-                                                <td className="p-3 font-medium">{hotel.name}</td>
+                                                <td className="p-3">
+                                                    {hotel.image_url ? (
+                                                        <img
+                                                            src={hotel.image_url}
+                                                            alt={hotel.name}
+                                                            className="size-12 rounded-md object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex size-12 items-center justify-center rounded-md bg-muted">
+                                                            <Building2 className="size-5 text-muted-foreground" />
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 font-medium">
+                                                    {hotel.name}
+                                                    {hotel.images && hotel.images.length > 1 && (
+                                                        <span className="ml-2 text-xs text-muted-foreground">
+                                                            ({hotel.images.length} images)
+                                                        </span>
+                                                    )}
+                                                </td>
                                                 <td className="p-3">
                                                     <div className="flex items-center gap-1">
                                                         {[...Array(hotel.stars)].map((_, i) => (

@@ -1,4 +1,4 @@
-import { ImageUpload } from '@/components/image-upload';
+import { MultiImageUpload } from '@/components/multi-image-upload';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -14,9 +14,11 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type UmrahHotel, type UmrahHotelFormData } from '@/types';
-import { Head, useForm, router } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { Head, useForm } from '@inertiajs/react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { FormEvent } from 'react';
+
+const MAX_HOTEL_IMAGES = 5;
 
 interface EditHotelProps {
     hotel: UmrahHotel;
@@ -38,24 +40,40 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EditHotel({ hotel }: EditHotelProps) {
-    const { data, setData, processing, errors } = useForm<UmrahHotelFormData>({
+    const { data, setData, post, processing, errors, transform } = useForm<UmrahHotelFormData>({
         name: hotel.name,
         stars: hotel.stars,
         location: hotel.location,
         description: hotel.description || '',
-        image: null,
+        images: [],
+        existing_image_ids: hotel.images?.map((image) => image.id) || [],
         is_active: hotel.is_active,
     });
 
+    const totalImages = data.existing_image_ids.length + data.images.length;
+    const remainingSlots = Math.max(0, MAX_HOTEL_IMAGES - data.existing_image_ids.length);
+
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        router.post(`/umrah-content/hotels/${hotel.id}`, {
-            ...data,
-            _method: 'PUT',
-        }, {
+        transform((current) => ({ ...current, _method: 'put' }));
+        post(`/umrah-content/hotels/${hotel.id}`, {
             forceFormData: true,
         });
     };
+
+    const handleImagesChange = (files: File[]) => {
+        setData('images', files.slice(0, remainingSlots));
+    };
+
+    const removeExistingImage = (imageId: number) => {
+        setData(
+            'existing_image_ids',
+            data.existing_image_ids.filter((id) => id !== imageId),
+        );
+    };
+
+    const retainedImages =
+        hotel.images?.filter((image) => data.existing_image_ids.includes(image.id)) || [];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -155,31 +173,62 @@ export default function EditHotel({ hotel }: EditHotelProps) {
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="image">Image</Label>
-                                {hotel.image_path && (
-                                    <div className="mb-2">
-                                        <img
-                                            src={hotel.image_url || `/storage/${hotel.image_path}`}
-                                            alt={hotel.name}
-                                            className="h-32 w-auto rounded border object-cover"
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            Current image
-                                        </p>
+                            <div className="space-y-3">
+                                <Label>Images (up to {MAX_HOTEL_IMAGES})</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    The first image is used as the thumbnail. Add up to{' '}
+                                    {MAX_HOTEL_IMAGES} images for the carousel.
+                                </p>
+
+                                {retainedImages.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                                        {retainedImages.map((image) => (
+                                            <div
+                                                key={image.id}
+                                                className="group relative overflow-hidden rounded-lg border"
+                                            >
+                                                <img
+                                                    src={
+                                                        image.image_url ||
+                                                        (image.image_path
+                                                            ? `/storage/${image.image_path}`
+                                                            : '')
+                                                    }
+                                                    alt={`Hotel ${image.id}`}
+                                                    className="h-24 w-full object-cover"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
+                                                    onClick={() => removeExistingImage(image.id)}
+                                                >
+                                                    <Trash2 className="size-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
-                                <ImageUpload
-                                    value={data.image}
-                                    onChange={(file) => setData('image', file)}
-                                    error={errors.image}
+
+                                <MultiImageUpload
+                                    value={data.images}
+                                    onChange={handleImagesChange}
+                                    error={errors.images as string | undefined}
+                                    compact={retainedImages.length > 0}
                                 />
+
                                 <p className="text-xs text-muted-foreground">
-                                    Leave empty to keep the current image
+                                    {totalImages} of {MAX_HOTEL_IMAGES} images.
                                 </p>
-                                {errors.image && (
+                                {totalImages >= MAX_HOTEL_IMAGES && (
+                                    <p className="text-xs text-amber-600">
+                                        Maximum of {MAX_HOTEL_IMAGES} images reached.
+                                    </p>
+                                )}
+                                {errors.existing_image_ids && (
                                     <p className="text-sm text-destructive">
-                                        {errors.image}
+                                        {errors.existing_image_ids}
                                     </p>
                                 )}
                             </div>

@@ -200,7 +200,7 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $hotels = UmrahHotel::orderBy('name')->get();
+        $hotels = UmrahHotel::with('images')->orderBy('name')->get();
 
         return Inertia::render('umrah-content/hotels/index', [
             'hotels' => $hotels,
@@ -235,16 +235,16 @@ class UmrahContentController extends Controller
             'stars' => ['required', 'integer', 'min:1', 'max:5'],
             'location' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'images' => ['nullable', 'array', 'max:'.UmrahHotel::MAX_IMAGES],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'is_active' => ['boolean'],
         ]);
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $this->storeUploadedFile($request->file('image'), 'umrah/hotels');
-        }
+        $images = $request->file('images', []);
+        unset($validated['images']);
 
-        UmrahHotel::create($validated);
+        $hotel = UmrahHotel::create($validated);
+        $this->storeHotelImages($hotel, is_array($images) ? $images : []);
 
         return redirect()->route('umrah-content.hotels.index')
             ->with('success', 'Hotel created successfully.');
@@ -260,6 +260,8 @@ class UmrahContentController extends Controller
                 'message' => 'You do not have permission to manage umrah content.',
             ])->toResponse(request())->setStatusCode(403);
         }
+
+        $hotel->load('images');
 
         return Inertia::render('umrah-content/hotels/edit', [
             'hotel' => $hotel,
@@ -280,22 +282,31 @@ class UmrahContentController extends Controller
             'stars' => ['required', 'integer', 'min:1', 'max:5'],
             'location' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'existing_image_ids' => ['nullable', 'array'],
+            'existing_image_ids.*' => ['integer', 'exists:umrah_hotel_images,id'],
+            'images' => ['nullable', 'array'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'is_active' => ['boolean'],
         ]);
 
-        // Handle image upload if new image provided
-        if ($request->hasFile('image')) {
-            $newImagePath = $this->storeUploadedFile($request->file('image'), 'umrah/hotels');
+        $existingImageIds = $validated['existing_image_ids'] ?? [];
+        $images = $request->file('images', []);
 
-            if ($hotel->image_path) {
-                Storage::disk('public')->delete($hotel->image_path);
-            }
-
-            $validated['image_path'] = $newImagePath;
+        $totalCount = count($existingImageIds) + (is_array($images) ? count($images) : 0);
+        if ($totalCount > UmrahHotel::MAX_IMAGES) {
+            return back()->withErrors([
+                'images' => 'A hotel can have at most '.UmrahHotel::MAX_IMAGES.' images.',
+            ])->withInput();
         }
 
+        unset($validated['existing_image_ids'], $validated['images']);
+
         $hotel->update($validated);
+        $this->syncHotelImages(
+            $hotel,
+            is_array($existingImageIds) ? array_map('intval', $existingImageIds) : [],
+            is_array($images) ? $images : [],
+        );
 
         return redirect()->route('umrah-content.hotels.index')
             ->with('success', 'Hotel updated successfully.');
@@ -310,15 +321,72 @@ class UmrahContentController extends Controller
             abort(403, 'You do not have permission to manage umrah content.');
         }
 
-        // Delete image from storage
-        if ($hotel->image_path) {
-            Storage::disk('public')->delete($hotel->image_path);
+        foreach ($hotel->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
         }
 
         $hotel->delete();
 
         return redirect()->route('umrah-content.hotels.index')
             ->with('success', 'Hotel deleted successfully.');
+    }
+
+    /**
+     * Persist new hotel images.
+     *
+     * @param  array<int, UploadedFile>  $images
+     */
+    protected function storeHotelImages(UmrahHotel $hotel, array $images): void
+    {
+        foreach ($images as $index => $image) {
+            $imagePath = $this->storeUploadedFile($image, 'umrah/hotels');
+
+            $hotel->images()->create([
+                'image_path' => $imagePath,
+                'order' => $index,
+            ]);
+        }
+    }
+
+    /**
+     * Sync hotel images: keep retained ones, delete the rest, append new uploads.
+     *
+     * @param  array<int, int>  $retainedIds
+     * @param  array<int, UploadedFile>  $newImages
+     */
+    protected function syncHotelImages(UmrahHotel $hotel, array $retainedIds, array $newImages): void
+    {
+        $hotel->load('images');
+
+        $imagesToDelete = $hotel->images
+            ->filter(fn ($image) => ! in_array($image->id, $retainedIds, true));
+
+        foreach ($imagesToDelete as $imageToDelete) {
+            Storage::disk('public')->delete($imageToDelete->image_path);
+            $imageToDelete->delete();
+        }
+
+        $retainedImages = $hotel->images()
+            ->whereIn('id', $retainedIds)
+            ->orderBy('order')
+            ->get();
+
+        foreach ($retainedImages as $index => $retainedImage) {
+            $retainedImage->update(['order' => $index]);
+        }
+
+        $nextOrder = $retainedImages->count();
+
+        foreach ($newImages as $image) {
+            $imagePath = $this->storeUploadedFile($image, 'umrah/hotels');
+
+            $hotel->images()->create([
+                'image_path' => $imagePath,
+                'order' => $nextOrder,
+            ]);
+
+            $nextOrder++;
+        }
     }
 
     // ==================== TRANSPORTATIONS ====================
@@ -772,7 +840,7 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $hotels = UmrahHotel::active()->orderBy('name')->get();
+        $hotels = UmrahHotel::active()->with('images')->orderBy('name')->get();
         $airlines = UmrahAirline::active()->orderBy('name')->get();
         $transportations = UmrahTransportation::active()->ordered()->get();
         $itineraries = UmrahItinerary::active()->ordered()->get();
@@ -904,9 +972,9 @@ class UmrahContentController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
-        $package->load(['hotels', 'airlines', 'transportations', 'itineraries', 'additionalServices', 'services', 'images', 'category']);
+        $package->load(['hotels.images', 'airlines', 'transportations', 'itineraries', 'additionalServices', 'services', 'images', 'category']);
 
-        $hotels = UmrahHotel::active()->orderBy('name')->get();
+        $hotels = UmrahHotel::active()->with('images')->orderBy('name')->get();
         $airlines = UmrahAirline::active()->orderBy('name')->get();
         $transportations = UmrahTransportation::active()->ordered()->get();
         $itineraries = UmrahItinerary::active()->ordered()->get();

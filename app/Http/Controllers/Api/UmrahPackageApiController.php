@@ -52,7 +52,7 @@ class UmrahPackageApiController extends Controller
 
         $query = UmrahPackage::active()
             ->ordered()
-            ->with(['hotels', 'airlines', 'additionalServices', 'category']);
+            ->with(['hotels.images', 'airlines', 'additionalServices', 'category']);
 
         // Optional filter by category slug (e.g. ?category=umrah-private)
         if ($categorySlug = $request->query('category')) {
@@ -104,6 +104,11 @@ class UmrahPackageApiController extends Controller
                         'location' => $hotel->location,
                         'description' => $hotel->description,
                         'image_url' => $hotel->image_url,
+                        'images' => $hotel->images->map(fn ($image) => [
+                            'id' => $image->id,
+                            'image_url' => $image->image_url,
+                            'order' => $image->order,
+                        ]),
                         'order' => $hotel->pivot->order,
                         'total_nights' => (int) $hotel->pivot->total_nights,
                     ];
@@ -157,7 +162,7 @@ class UmrahPackageApiController extends Controller
         $package = UmrahPackage::active()
             ->where('slug', $slug)
             ->with([
-                'hotels',
+                'hotels.images',
                 'airlines',
                 'transportations',
                 'itineraries',
@@ -212,6 +217,11 @@ class UmrahPackageApiController extends Controller
                         'location' => $hotel->location,
                         'description' => $hotel->description,
                         'image_url' => $hotel->image_url,
+                        'images' => $hotel->images->map(fn ($image) => [
+                            'id' => $image->id,
+                            'image_url' => $image->image_url,
+                            'order' => $image->order,
+                        ]),
                         'order' => $hotel->pivot->order,
                         'total_nights' => (int) $hotel->pivot->total_nights,
                     ];

@@ -505,3 +505,81 @@ test('package update syncs hotel total nights', function () {
 
     expect($package->hotels()->first()->pivot->total_nights)->toBe(7);
 });
+
+test('admin users can create a hotel with multiple images', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $response = $this->actingAs($user)->post(route('umrah-content.hotels.store'), [
+        'name' => 'Carousel Hotel',
+        'stars' => 5,
+        'location' => 'Madinah',
+        'description' => null,
+        'is_active' => true,
+        'images' => [
+            UploadedFile::fake()->image('hotel-1.jpg'),
+            UploadedFile::fake()->image('hotel-2.jpg'),
+            UploadedFile::fake()->image('hotel-3.jpg'),
+        ],
+    ]);
+
+    $response->assertRedirect(route('umrah-content.hotels.index'));
+
+    $hotel = UmrahHotel::where('name', 'Carousel Hotel')->firstOrFail();
+    expect($hotel->images()->count())->toBe(3);
+    expect($hotel->images()->orderBy('order')->first()->order)->toBe(0);
+    expect($hotel->image_url)->not->toBeNull();
+});
+
+test('hotel image upload is capped at 5', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $response = $this->actingAs($user)->post(route('umrah-content.hotels.store'), [
+        'name' => 'Too Many Images Hotel',
+        'stars' => 5,
+        'location' => 'Makkah',
+        'is_active' => true,
+        'images' => array_map(
+            fn ($i) => UploadedFile::fake()->image("hotel-{$i}.jpg"),
+            range(1, 6),
+        ),
+    ]);
+
+    $response->assertSessionHasErrors('images');
+    expect(UmrahHotel::where('name', 'Too Many Images Hotel')->exists())->toBeFalse();
+});
+
+test('admin users can sync hotel images on update', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $hotel = UmrahHotel::create([
+        'name' => 'Sync Hotel',
+        'stars' => 4,
+        'location' => 'Madinah',
+        'is_active' => true,
+    ]);
+
+    $hotel->images()->createMany([
+        ['image_path' => 'umrah/hotels/old-1.jpg', 'order' => 0],
+        ['image_path' => 'umrah/hotels/old-2.jpg', 'order' => 1],
+    ]);
+
+    $retainedId = $hotel->images()->orderBy('order')->first()->id;
+
+    $response = $this->actingAs($user)->put(route('umrah-content.hotels.update', $hotel), [
+        'name' => 'Sync Hotel',
+        'stars' => 4,
+        'location' => 'Madinah',
+        'is_active' => true,
+        'existing_image_ids' => [$retainedId],
+        'images' => [UploadedFile::fake()->image('new.jpg')],
+    ]);
+
+    $response->assertRedirect(route('umrah-content.hotels.index'));
+
+    $hotel->refresh();
+    expect($hotel->images()->count())->toBe(2);
+    expect($hotel->images()->pluck('id'))->toContain($retainedId);
+});
