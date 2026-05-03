@@ -245,6 +245,7 @@ class UmrahPackageApiController extends Controller
                     return [
                         'id' => $transportation->id,
                         'name' => $transportation->name,
+                        'subtitle' => $transportation->subtitle,
                         'description' => $transportation->description,
                         'icon_url' => $transportation->icon_url,
                         'order' => $transportation->pivot->order,

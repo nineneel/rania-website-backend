@@ -77,7 +77,14 @@ export function TransportationItem({ transportation }: { transportation: UmrahTr
                     <Bus className="size-5 text-muted-foreground" />
                 )}
             </div>
-            <p className="pr-6 text-sm font-medium">{transportation.name}</p>
+            <div className="min-w-0 flex-1 pr-6">
+                <p className="truncate text-sm font-medium">{transportation.name}</p>
+                {transportation.subtitle && (
+                    <p className="truncate text-xs text-muted-foreground">
+                        {transportation.subtitle}
+                    </p>
+                )}
+            </div>
         </div>
     );
 }

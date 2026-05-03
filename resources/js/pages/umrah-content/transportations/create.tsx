@@ -35,6 +35,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function CreateTransportation() {
     const { data, setData, post, processing, errors } = useForm<UmrahTransportationFormData>({
         name: '',
+        subtitle: '',
         description: '',
         icon: null,
         is_active: true,
@@ -78,6 +79,20 @@ export default function CreateTransportation() {
                                 />
                                 {errors.name && (
                                     <p className="text-sm text-destructive">{errors.name}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="subtitle">Subtitle (Optional)</Label>
+                                <Input
+                                    id="subtitle"
+                                    type="text"
+                                    value={data.subtitle}
+                                    onChange={(e) => setData('subtitle', e.target.value)}
+                                    placeholder="e.g., GMC, Haramain High Speed Railway"
+                                />
+                                {errors.subtitle && (
+                                    <p className="text-sm text-destructive">{errors.subtitle}</p>
                                 )}
                             </div>
 

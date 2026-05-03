@@ -94,8 +94,15 @@ export default function TransportationsIndex({ transportations }: Transportation
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="p-3 font-medium">
-                                                    {transportation.name}
+                                                <td className="p-3">
+                                                    <p className="font-medium">
+                                                        {transportation.name}
+                                                    </p>
+                                                    {transportation.subtitle && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {transportation.subtitle}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className="p-3 text-muted-foreground">
                                                     {transportation.description || '-'}

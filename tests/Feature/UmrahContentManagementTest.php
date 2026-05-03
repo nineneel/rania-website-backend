@@ -16,6 +16,7 @@ test('admin users can create transportation', function () {
 
     $response = $this->actingAs($user)->post(route('umrah-content.transportations.store'), [
         'name' => 'Private Car',
+        'subtitle' => 'GMC',
         'description' => 'Private transport service',
         'icon' => UploadedFile::fake()->image('private-car.png'),
         'is_active' => true,
@@ -26,6 +27,7 @@ test('admin users can create transportation', function () {
 
     $this->assertDatabaseHas('umrah_transportations', [
         'name' => 'Private Car',
+        'subtitle' => 'GMC',
         'description' => 'Private transport service',
         'is_active' => true,
     ]);

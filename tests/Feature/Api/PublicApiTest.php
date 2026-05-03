@@ -360,6 +360,7 @@ test('public api can retrieve umrah package details by slug', function () {
 
     $transportation = UmrahTransportation::create([
         'name' => 'Private Car',
+        'subtitle' => 'GMC',
         'description' => 'Private transport',
         'is_active' => true,
         'order' => 0,
@@ -414,6 +415,7 @@ test('public api can retrieve umrah package details by slug', function () {
     $response->assertOk();
     $response->assertJsonFragment(['slug' => 'detail-package']);
     $response->assertJsonFragment(['name' => 'Private Car']);
+    $response->assertJsonFragment(['subtitle' => 'GMC']);
     $response->assertJsonFragment(['title' => 'Masjid Nabawi']);
     $response->assertJsonFragment(['title' => 'Airport Assistance']);
     $response->assertJsonFragment(['title' => 'Visa Processing']);

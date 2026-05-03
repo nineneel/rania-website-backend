@@ -11,6 +11,7 @@ class UmrahTransportation extends Model
 
     protected $fillable = [
         'name',
+        'subtitle',
         'description',
         'icon_path',
         'is_active',

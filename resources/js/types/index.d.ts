@@ -207,6 +207,7 @@ export interface UmrahPackageImage {
 export interface UmrahTransportation {
     id: number;
     name: string;
+    subtitle?: string | null;
     description?: string;
     icon_path?: string;
     icon_url?: string;
@@ -302,6 +303,7 @@ export interface UmrahPackageFormData {
 
 export interface UmrahTransportationFormData {
     name: string;
+    subtitle: string;
     description: string;
     icon: File | null;
     is_active: boolean;

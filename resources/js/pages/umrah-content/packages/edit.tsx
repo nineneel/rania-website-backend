@@ -936,7 +936,9 @@ export default function EditPackage({
                                     renderItem={(transportation) => (
                                         <TransportationItem transportation={transportation} />
                                     )}
-                                    getSearchText={(transportation) => transportation.name}
+                                    getSearchText={(transportation) =>
+                                        `${transportation.name} ${transportation.subtitle ?? ''}`
+                                    }
                                     emptyAvailableMessage="All transportations are already added."
                                     emptyAllMessage="No transportations available. Add transportations first."
                                 />

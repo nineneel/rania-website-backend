@@ -507,6 +507,7 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
       {
         "id": 3,
         "name": "Private Car",
+        "subtitle": "GMC",
         "description": "Comfortable airport-hotel transfer",
         "icon_url": "https://example.com/storage/umrah/transportations/private-car.png",
         "order": 0
@@ -549,6 +550,9 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
 
 **Date field:**
 - `date` — optional free-form string (max 100 chars) representing the package's departure date or date range. Returned as `null` when not configured. Examples: `"15 Mar 2026"`, `"15-20 Mar 2026"`, `"Q1 2026"`. Stored as a string for flexibility — no parsing or validation of the format is performed.
+
+**Transportation fields:**
+- `subtitle` — optional short label (max 255 chars) shown beneath `name` to specify the make/model/operator. Examples: `"GMC"` for `"Private Car"`, `"Haramain High Speed Railway"` for `"Train"`. Returned as `null` when not configured.
 
 **Hotel fields:**
 - `image_url` — thumbnail derived from the first item in `images` (ordered by `order`). `null` when the hotel has no images.
