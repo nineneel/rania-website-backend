@@ -13,7 +13,7 @@ import { dashboard } from '@/routes';
 import usersRoute from '@/routes/users';
 import { type NavGroup, type SharedData } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { BarChart3, Home, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle, HelpCircle, Mail, Link2 } from 'lucide-react';
+import { BarChart3, Home, Image, LayoutGrid, Users, Plane, MessageSquare, Share2, MessageCircle, HelpCircle, Mail, Link2 } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const getMainNavGroups = (userRole: string): NavGroup[] => {
@@ -49,6 +49,11 @@ const getMainNavGroups = (userRole: string): NavGroup[] => {
                     title: 'Testimonials',
                     href: { url: '/testimonials', method: 'get' },
                     icon: MessageCircle,
+                },
+                {
+                    title: 'Rania Gallery',
+                    href: { url: '/rania-galleries', method: 'get' },
+                    icon: Image,
                 },
                 {
                     title: 'FAQ',

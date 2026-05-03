@@ -189,6 +189,7 @@ The application provides REST API endpoints for the public website to consume.
 | GET | `/api/social-media` | Get active social media links | ❌ |
 | GET | `/api/faqs` | Get active FAQs | ❌ |
 | GET | `/api/testimonials` | Get active testimonials | ✅ |
+| GET | `/api/rania-galleries` | Get active Rania Gallery images | ✅ |
 | GET | `/api/umrah-packages` | Get active packages list with hotels, airlines & additional services | ✅ |
 | GET | `/api/umrah-packages/{slug}` | Get one active package detail by slug | ❌ |
 | GET | `/api/umrah-packages/{slug}/other-additional-services` | Get additional services not included in a package | ✅ |
@@ -351,6 +352,51 @@ curl "https://your-domain.com/api/testimonials?per_page=10&page=1"
 ```
 
 **Lazy Loading:** Use `pagination.has_more` to check if there are more items.
+
+---
+
+### Rania Gallery
+
+Get active Rania Gallery images with pagination for the gallery section on the website.
+
+**Endpoint:** `GET /api/rania-galleries`
+
+**Query Parameters:**
+- `per_page` (optional) - Items per page (default: 12, max: 50)
+- `page` (optional) - Page number (default: 1)
+
+**Example:**
+```bash
+curl "https://your-domain.com/api/rania-galleries?per_page=12&page=1"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Pilgrim at Masjid al-Haram",
+      "image_url": "https://example.com/storage/rania-galleries/image1.jpg",
+      "order": 0
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "last_page": 2,
+    "per_page": 12,
+    "total": 18,
+    "from": 1,
+    "to": 12,
+    "has_more": true
+  }
+}
+```
+
+**Notes:**
+- `title` may be `null` when the image is decorative.
+- Use `pagination.has_more` for lazy loading / infinite scroll.
 
 ---
 

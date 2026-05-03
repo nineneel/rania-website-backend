@@ -385,6 +385,24 @@ export interface TestimonialFormData {
     is_active: boolean;
 }
 
+// Rania Gallery Types
+export interface RaniaGallery {
+    id: number;
+    title: string | null;
+    image_path: string;
+    image_url?: string;
+    order: number;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface RaniaGalleryFormData {
+    title: string;
+    image: File | null;
+    is_active: boolean;
+}
+
 // Linktree Types
 export interface LinktreeLink {
     id: number;

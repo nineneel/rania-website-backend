@@ -8,6 +8,7 @@ use App\Http\Controllers\FAQController;
 use App\Http\Controllers\HomeContentController;
 use App\Http\Controllers\LinktreeController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\RaniaGalleryController;
 use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\UmrahContentController;
@@ -157,6 +158,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{testimonial}', [TestimonialController::class, 'update'])->name('update');
         Route::delete('/{testimonial}', [TestimonialController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [TestimonialController::class, 'updateOrder'])->name('reorder');
+    });
+
+    // Rania Gallery Routes - Only accessible by super-admin and admin
+    Route::prefix('rania-galleries')->name('rania-galleries.')->group(function () {
+        Route::get('/', [RaniaGalleryController::class, 'index'])->name('index');
+        Route::get('/create', [RaniaGalleryController::class, 'create'])->name('create');
+        Route::post('/', [RaniaGalleryController::class, 'store'])->name('store');
+        Route::get('/{raniaGallery}/edit', [RaniaGalleryController::class, 'edit'])->name('edit');
+        Route::put('/{raniaGallery}', [RaniaGalleryController::class, 'update'])->name('update');
+        Route::delete('/{raniaGallery}', [RaniaGalleryController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [RaniaGalleryController::class, 'updateOrder'])->name('reorder');
     });
 
     // FAQ Routes - Only accessible by super-admin and admin
