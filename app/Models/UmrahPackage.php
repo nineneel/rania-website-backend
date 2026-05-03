@@ -19,6 +19,7 @@ class UmrahPackage extends Model
         'departure',
         'duration',
         'departure_schedule',
+        'date',
         'price_idr',
         'price_usd',
         'price_sar',
@@ -61,7 +62,8 @@ class UmrahPackage extends Model
      */
     public function airlines(): BelongsToMany
     {
-        return $this->belongsToMany(UmrahAirline::class, 'umrah_package_airline');
+        return $this->belongsToMany(UmrahAirline::class, 'umrah_package_airline')
+            ->withPivot('class', 'meal', 'baggage');
     }
 
     /**

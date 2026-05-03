@@ -459,6 +459,130 @@ test('public api detail uses package-level additional service overrides when ava
     $response->assertJsonMissing(['title' => $globalAdditionalService->title]);
 });
 
+test('public api umrah packages include nullable date field', function () {
+    $packageWithDate = UmrahPackage::create([
+        'title' => 'Dated Package',
+        'slug' => 'dated-package',
+        'description' => 'Description',
+        'price_idr' => 1500,
+        'duration' => '10 days',
+        'departure' => 'Jakarta',
+        'departure_schedule' => 'monthly',
+        'date' => '15 Mar 2026',
+        'image_path' => 'packages/dated.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $packageWithoutDate = UmrahPackage::create([
+        'title' => 'Undated Package',
+        'slug' => 'undated-package',
+        'description' => 'Description',
+        'price_idr' => 1500,
+        'duration' => '10 days',
+        'departure' => 'Jakarta',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/undated.jpg',
+        'is_active' => true,
+        'order' => 2,
+    ]);
+
+    $listResponse = $this->getJson('/api/umrah-packages');
+    $listResponse->assertOk();
+    $list = collect($listResponse->json('data'))->keyBy('slug');
+    expect($list['dated-package']['date'])->toBe('15 Mar 2026');
+    expect($list['undated-package']['date'])->toBeNull();
+
+    $detailResponse = $this->getJson('/api/umrah-packages/dated-package');
+    $detailResponse->assertOk();
+    expect($detailResponse->json('data.date'))->toBe('15 Mar 2026');
+
+    $undatedDetail = $this->getJson('/api/umrah-packages/undated-package');
+    expect($undatedDetail->json('data.date'))->toBeNull();
+});
+
+test('public api umrah packages include airline class meal and baggage', function () {
+    $hotel = UmrahHotel::create([
+        'name' => 'Hotel A',
+        'stars' => 5,
+        'location' => 'Madinah',
+        'is_active' => true,
+    ]);
+
+    $airlineBusiness = UmrahAirline::create([
+        'name' => 'Airline Business',
+        'logo_path' => 'umrah/airlines/business.png',
+        'is_active' => true,
+    ]);
+
+    $airlineDefault = UmrahAirline::create([
+        'name' => 'Airline Default',
+        'logo_path' => 'umrah/airlines/default.png',
+        'is_active' => true,
+    ]);
+
+    $package = UmrahPackage::create([
+        'title' => 'Airline Fields Package',
+        'slug' => 'airline-fields-package',
+        'description' => 'Description',
+        'price_idr' => 1500,
+        'duration' => '10 days',
+        'departure' => 'Jakarta',
+        'departure_schedule' => 'monthly',
+        'image_path' => 'packages/airline-fields-package.jpg',
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $package->hotels()->attach([$hotel->id => ['order' => 0]]);
+    $package->airlines()->attach([
+        $airlineBusiness->id => [
+            'class' => 'business',
+            'meal' => '2× Premium meal',
+            'baggage' => '30 Kg (2Pcs)',
+        ],
+        $airlineDefault->id => [
+            'class' => 'economy',
+            'meal' => null,
+            'baggage' => null,
+        ],
+    ]);
+    $package->images()->createMany([
+        ['image_path' => 'umrah/packages/gallery/a-1.jpg', 'order' => 0],
+        ['image_path' => 'umrah/packages/gallery/a-2.jpg', 'order' => 1],
+        ['image_path' => 'umrah/packages/gallery/a-3.jpg', 'order' => 2],
+        ['image_path' => 'umrah/packages/gallery/a-4.jpg', 'order' => 3],
+    ]);
+
+    $listResponse = $this->getJson('/api/umrah-packages');
+    $listResponse->assertOk();
+    $listAirlines = collect($listResponse->json('data.0.airlines'))->keyBy('id');
+    expect($listAirlines[$airlineBusiness->id])->toMatchArray([
+        'class' => 'business',
+        'meal' => '2× Premium meal',
+        'baggage' => '30 Kg (2Pcs)',
+    ]);
+    expect($listAirlines[$airlineDefault->id])->toMatchArray([
+        'class' => 'economy',
+        'meal' => null,
+        'baggage' => null,
+    ]);
+
+    $detailResponse = $this->getJson('/api/umrah-packages/airline-fields-package');
+    $detailResponse->assertOk();
+    $detailAirlines = collect($detailResponse->json('data.airlines'))->keyBy('id');
+    expect($detailAirlines[$airlineBusiness->id])->toMatchArray([
+        'class' => 'business',
+        'meal' => '2× Premium meal',
+        'baggage' => '30 Kg (2Pcs)',
+    ]);
+    expect($detailAirlines[$airlineDefault->id])->toMatchArray([
+        'class' => 'economy',
+        'meal' => null,
+        'baggage' => null,
+    ]);
+});
+
 test('public api returns not found for inactive umrah package detail', function () {
     UmrahPackage::create([
         'title' => 'Inactive Detail Package',

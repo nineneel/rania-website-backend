@@ -44,6 +44,13 @@ import { ArrowLeft, Check, DollarSign, Moon, Plus, X } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 const DEFAULT_HOTEL_NIGHTS = 3;
+const DEFAULT_AIRLINE_CLASS = 'economy';
+const PRESET_AIRLINE_CLASSES = ['economy', 'business', 'first'] as const;
+const AIRLINE_CLASS_LABELS: Record<string, string> = {
+    economy: 'Economy',
+    business: 'Business',
+    first: 'First Class',
+};
 
 const DEFAULT_PACKAGE_SERVICES: { title: string; is_included: boolean }[] = [
     { title: 'Visa', is_included: true },
@@ -111,6 +118,7 @@ export default function CreatePackage({
         departure: '',
         duration: '',
         departure_schedule: '',
+        date: '',
         price_idr: '',
         price_usd: '',
         price_sar: '',
@@ -119,6 +127,9 @@ export default function CreatePackage({
         hotel_ids: [],
         hotel_nights: {},
         airline_ids: [],
+        airline_classes: {},
+        airline_meals: {},
+        airline_baggages: {},
         transportation_ids: [],
         itinerary_ids: [],
         additional_service_ids: [],
@@ -169,10 +180,35 @@ export default function CreatePackage({
             return;
         }
         setData('airline_ids', [...data.airline_ids, airlineId]);
+        setData('airline_classes', {
+            ...data.airline_classes,
+            [airlineId]: data.airline_classes[airlineId] ?? DEFAULT_AIRLINE_CLASS,
+        });
     };
 
     const removeAirline = (airlineId: number) => {
+        const nextClasses = { ...data.airline_classes };
+        const nextMeals = { ...data.airline_meals };
+        const nextBaggages = { ...data.airline_baggages };
+        delete nextClasses[airlineId];
+        delete nextMeals[airlineId];
+        delete nextBaggages[airlineId];
         setData('airline_ids', data.airline_ids.filter((id) => id !== airlineId));
+        setData('airline_classes', nextClasses);
+        setData('airline_meals', nextMeals);
+        setData('airline_baggages', nextBaggages);
+    };
+
+    const setAirlineClass = (airlineId: number, value: string) => {
+        setData('airline_classes', { ...data.airline_classes, [airlineId]: value });
+    };
+
+    const setAirlineMeal = (airlineId: number, value: string) => {
+        setData('airline_meals', { ...data.airline_meals, [airlineId]: value });
+    };
+
+    const setAirlineBaggage = (airlineId: number, value: string) => {
+        setData('airline_baggages', { ...data.airline_baggages, [airlineId]: value });
     };
 
     const addTransportation = (transportationId: number) => {
@@ -425,23 +461,39 @@ export default function CreatePackage({
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="departure_schedule">Pax</Label>
-                                <Input
-                                    id="departure_schedule"
-                                    type="text"
-                                    value={data.departure_schedule}
-                                    onChange={(e) =>
-                                        setData('departure_schedule', e.target.value)
-                                    }
-                                    placeholder="e.g., 1-10 Pax"
-                                    required
-                                />
-                                {errors.departure_schedule && (
-                                    <p className="text-sm text-destructive">
-                                        {errors.departure_schedule}
-                                    </p>
-                                )}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="departure_schedule">Pax</Label>
+                                    <Input
+                                        id="departure_schedule"
+                                        type="text"
+                                        value={data.departure_schedule}
+                                        onChange={(e) =>
+                                            setData('departure_schedule', e.target.value)
+                                        }
+                                        placeholder="e.g., 1-10 Pax"
+                                        required
+                                    />
+                                    {errors.departure_schedule && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.departure_schedule}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="date">Date (Optional)</Label>
+                                    <Input
+                                        id="date"
+                                        type="text"
+                                        value={data.date}
+                                        onChange={(e) => setData('date', e.target.value)}
+                                        placeholder="e.g., 15 Mar 2026 or 15-20 Mar 2026"
+                                    />
+                                    {errors.date && (
+                                        <p className="text-sm text-destructive">{errors.date}</p>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -607,26 +659,139 @@ export default function CreatePackage({
 
                             <div className="space-y-2">
                                 <Label>Airlines</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Pick the travel class for each airline (default Economy).
+                                </p>
                                 <div className="space-y-2">
-                                    {selectedAirlines.map((airline) => (
-                                        <div
-                                            key={airline.id}
-                                            className="flex items-center gap-3 rounded-lg border p-3"
-                                        >
-                                            <div className="flex-1">
-                                                <AirlineItem airline={airline} />
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
-                                                onClick={() => removeAirline(airline.id)}
+                                    {selectedAirlines.map((airline) => {
+                                        const currentClass =
+                                            data.airline_classes[airline.id] ?? DEFAULT_AIRLINE_CLASS;
+                                        const isPreset = (
+                                            PRESET_AIRLINE_CLASSES as readonly string[]
+                                        ).includes(currentClass);
+                                        return (
+                                            <div
+                                                key={airline.id}
+                                                className="flex flex-col gap-3 rounded-lg border p-3"
                                             >
-                                                <X className="size-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                                    <div className="flex-1">
+                                                        <AirlineItem airline={airline} />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 sm:border-l sm:pl-3">
+                                                        <Select
+                                                            value={isPreset ? currentClass : 'custom'}
+                                                            onValueChange={(value) => {
+                                                                if (value === 'custom') {
+                                                                    setAirlineClass(
+                                                                        airline.id,
+                                                                        isPreset ? '' : currentClass,
+                                                                    );
+                                                                } else {
+                                                                    setAirlineClass(airline.id, value);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <SelectTrigger className="h-8 w-32 text-sm">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {PRESET_AIRLINE_CLASSES.map(
+                                                                    (preset) => (
+                                                                        <SelectItem
+                                                                            key={preset}
+                                                                            value={preset}
+                                                                        >
+                                                                            {
+                                                                                AIRLINE_CLASS_LABELS[
+                                                                                    preset
+                                                                                ]
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
+                                                                <SelectItem value="custom">
+                                                                    Custom...
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        {!isPreset && (
+                                                            <Input
+                                                                type="text"
+                                                                value={currentClass}
+                                                                onChange={(e) =>
+                                                                    setAirlineClass(
+                                                                        airline.id,
+                                                                        e.target.value,
+                                                                    )
+                                                                }
+                                                                placeholder="Custom class"
+                                                                className="h-8 w-32 text-sm"
+                                                            />
+                                                        )}
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="size-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                                                            onClick={() => removeAirline(airline.id)}
+                                                        >
+                                                            <X className="size-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:border-t sm:pt-3">
+                                                    <div className="space-y-1">
+                                                        <Label
+                                                            htmlFor={`airline_meal_${airline.id}`}
+                                                            className="text-xs font-normal text-muted-foreground"
+                                                        >
+                                                            Meal (optional)
+                                                        </Label>
+                                                        <Input
+                                                            id={`airline_meal_${airline.id}`}
+                                                            type="text"
+                                                            value={
+                                                                data.airline_meals[airline.id] ?? ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setAirlineMeal(
+                                                                    airline.id,
+                                                                    e.target.value,
+                                                                )
+                                                            }
+                                                            placeholder="e.g., 2× Hidangan Premium Selama Penerbangan"
+                                                            className="h-8 text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label
+                                                            htmlFor={`airline_baggage_${airline.id}`}
+                                                            className="text-xs font-normal text-muted-foreground"
+                                                        >
+                                                            Baggage (optional)
+                                                        </Label>
+                                                        <Input
+                                                            id={`airline_baggage_${airline.id}`}
+                                                            type="text"
+                                                            value={
+                                                                data.airline_baggages[airline.id] ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setAirlineBaggage(
+                                                                    airline.id,
+                                                                    e.target.value,
+                                                                )
+                                                            }
+                                                            placeholder="e.g., 23 Kg (2Pcs)"
+                                                            className="h-8 text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                                 <ItemPickerDialog
                                     triggerLabel="Add Airline"
@@ -640,6 +805,11 @@ export default function CreatePackage({
                                     emptyAvailableMessage="All airlines are already added."
                                     emptyAllMessage="No airlines available. Add airlines first."
                                 />
+                                {errors.airline_classes && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.airline_classes}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-2">

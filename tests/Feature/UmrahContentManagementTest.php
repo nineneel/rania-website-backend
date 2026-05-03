@@ -506,6 +506,124 @@ test('package update syncs hotel total nights', function () {
     expect($package->hotels()->first()->pivot->total_nights)->toBe(7);
 });
 
+test('package airlines store with custom class and default to economy when missing', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $hotel = UmrahHotel::create([
+        'name' => 'Hotel A',
+        'stars' => 5,
+        'location' => 'Madinah',
+        'is_active' => true,
+    ]);
+
+    $airlineBusiness = UmrahAirline::create([
+        'name' => 'Airline Business',
+        'logo_path' => 'umrah/airlines/business.png',
+        'is_active' => true,
+    ]);
+
+    $airlineDefault = UmrahAirline::create([
+        'name' => 'Airline Default',
+        'logo_path' => 'umrah/airlines/default.png',
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($user)->post(route('umrah-content.packages.store'), [
+        'title' => 'Airline Class Package',
+        'slug' => 'airline-class-package',
+        'description' => 'Package description',
+        'image' => UploadedFile::fake()->image('package.jpg'),
+        'gallery_images' => [
+            UploadedFile::fake()->image('gallery-1.jpg'),
+            UploadedFile::fake()->image('gallery-2.jpg'),
+            UploadedFile::fake()->image('gallery-3.jpg'),
+            UploadedFile::fake()->image('gallery-4.jpg'),
+        ],
+        'departure' => 'Jakarta',
+        'duration' => '9 days',
+        'departure_schedule' => 'Weekly',
+        'price_idr' => 5000,
+        'is_active' => true,
+        'hotel_ids' => [$hotel->id],
+        'airline_ids' => [$airlineBusiness->id, $airlineDefault->id],
+        'airline_classes' => [$airlineBusiness->id => 'business'],
+        'airline_meals' => [$airlineBusiness->id => '2× Premium meal'],
+        'airline_baggages' => [$airlineBusiness->id => '23 Kg (2Pcs)'],
+    ]);
+
+    $response->assertRedirect(route('umrah-content.packages.index'));
+
+    $package = UmrahPackage::first();
+
+    $businessPivot = $package->airlines()->where('umrah_airlines.id', $airlineBusiness->id)->first()->pivot;
+    $defaultPivot = $package->airlines()->where('umrah_airlines.id', $airlineDefault->id)->first()->pivot;
+
+    expect($businessPivot->class)->toBe('business');
+    expect($businessPivot->meal)->toBe('2× Premium meal');
+    expect($businessPivot->baggage)->toBe('23 Kg (2Pcs)');
+    expect($defaultPivot->class)->toBe('economy');
+    expect($defaultPivot->meal)->toBeNull();
+    expect($defaultPivot->baggage)->toBeNull();
+});
+
+test('package update syncs airline class', function () {
+    Storage::fake('public');
+    $user = User::factory()->admin()->create();
+
+    $airline = UmrahAirline::create([
+        'name' => 'Airline A',
+        'logo_path' => 'umrah/airlines/a.png',
+        'is_active' => true,
+    ]);
+
+    $package = UmrahPackage::create([
+        'title' => 'Package A',
+        'slug' => 'package-a',
+        'description' => 'Description',
+        'image_path' => 'umrah/packages/a.jpg',
+        'departure' => 'Jakarta',
+        'duration' => '9 days',
+        'departure_schedule' => 'Weekly',
+        'price_idr' => 5000,
+        'is_active' => true,
+        'order' => 0,
+    ]);
+
+    $package->airlines()->attach($airline->id, ['class' => 'economy', 'meal' => 'Old meal', 'baggage' => 'Old baggage']);
+    $package->images()->createMany([
+        ['image_path' => 'umrah/packages/gallery/a-1.jpg', 'order' => 0],
+        ['image_path' => 'umrah/packages/gallery/a-2.jpg', 'order' => 1],
+        ['image_path' => 'umrah/packages/gallery/a-3.jpg', 'order' => 2],
+        ['image_path' => 'umrah/packages/gallery/a-4.jpg', 'order' => 3],
+    ]);
+
+    $existingGalleryImageIds = $package->images()->pluck('id')->all();
+
+    $response = $this->actingAs($user)->put(route('umrah-content.packages.update', $package), [
+        'title' => 'Package A',
+        'slug' => 'package-a',
+        'description' => 'Description',
+        'existing_gallery_image_ids' => $existingGalleryImageIds,
+        'departure' => 'Jakarta',
+        'duration' => '9 days',
+        'departure_schedule' => 'Weekly',
+        'price_idr' => 5000,
+        'is_active' => true,
+        'airline_ids' => [$airline->id],
+        'airline_classes' => [$airline->id => 'first class custom'],
+        'airline_meals' => [$airline->id => 'New meal'],
+        'airline_baggages' => [$airline->id => '30 Kg (1Pc)'],
+    ]);
+
+    $response->assertRedirect(route('umrah-content.packages.index'));
+
+    $pivot = $package->airlines()->first()->pivot;
+    expect($pivot->class)->toBe('first class custom');
+    expect($pivot->meal)->toBe('New meal');
+    expect($pivot->baggage)->toBe('30 Kg (1Pc)');
+});
+
 test('admin users can create a hotel with multiple images', function () {
     Storage::fake('public');
     $user = User::factory()->admin()->create();

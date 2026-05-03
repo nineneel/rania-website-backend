@@ -134,6 +134,11 @@ export interface UmrahAirline {
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    pivot?: {
+        class?: string;
+        meal?: string | null;
+        baggage?: string | null;
+    };
 }
 
 export interface UmrahHotelImage {
@@ -173,6 +178,7 @@ export interface UmrahPackage {
     departure: string;
     duration: string;
     departure_schedule: string;
+    date: string | null;
     price_idr: string | null;
     price_usd: string | null;
     price_sar: string | null;
@@ -276,6 +282,7 @@ export interface UmrahPackageFormData {
     departure: string;
     duration: string;
     departure_schedule: string;
+    date: string;
     price_idr: string;
     price_usd: string;
     price_sar: string;
@@ -284,6 +291,9 @@ export interface UmrahPackageFormData {
     hotel_ids: number[];
     hotel_nights: Record<number, number>;
     airline_ids: number[];
+    airline_classes: Record<number, string>;
+    airline_meals: Record<number, string>;
+    airline_baggages: Record<number, string>;
     transportation_ids: number[];
     itinerary_ids: number[];
     additional_service_ids: number[];

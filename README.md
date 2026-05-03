@@ -27,8 +27,8 @@ Admin dashboard for managing Rania Travel & Umrah website content. Built with La
 
 ### Umrah Packages
 - **Packages** - Complete Umrah package management
-- **Hotels** - Hotel information with star ratings and locations
-- **Airlines** - Airline management with logos
+- **Hotels** - Hotel information with star ratings, locations, and a multi-image carousel (up to 5 images per hotel); per-package nights stay
+- **Airlines** - Airline management with logos; per-package travel class, meal, and baggage details
 - Package-Hotel-Airline relationships
 
 ### Communication
@@ -377,6 +377,7 @@ Get active Umrah packages with hotels, airlines, and additional services for lis
       "departure": "Jeddah",
       "duration": "14 days",
       "departure_schedule": "Weekly",
+      "date": "15 Mar 2026",
       "price": "12500.00",
       "currency": "SAR",
       "hotels": [
@@ -386,15 +387,31 @@ Get active Umrah packages with hotels, airlines, and additional services for lis
           "stars": 5,
           "location": "Makkah",
           "description": "Located 500m from Haram",
-          "image_url": "https://example.com/storage/hotels/hotel1.jpg",
-          "order": 1
+          "image_url": "https://example.com/storage/umrah/hotels/hotel1-1.jpg",
+          "images": [
+            {
+              "id": 11,
+              "image_url": "https://example.com/storage/umrah/hotels/hotel1-1.jpg",
+              "order": 0
+            },
+            {
+              "id": 12,
+              "image_url": "https://example.com/storage/umrah/hotels/hotel1-2.jpg",
+              "order": 1
+            }
+          ],
+          "order": 0,
+          "total_nights": 4
         }
       ],
       "airlines": [
         {
           "id": 1,
           "name": "Saudia Airlines",
-          "logo_url": "https://example.com/storage/airlines/saudia.png"
+          "logo_url": "https://example.com/storage/airlines/saudia.png",
+          "class": "business",
+          "meal": "2× Hidangan Premium Selama Penerbangan",
+          "baggage": "23 Kg (2Pcs)"
         }
       ],
       "additional_services": [
@@ -448,6 +465,7 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
     "departure": "Soekarno-Hatta airport (CGK) Jakarta",
     "duration": "9 Days",
     "departure_schedule": "Weekly",
+    "date": "15 Mar 2026",
     "price": "54800000.00",
     "currency": "Rp",
     "link": "https://example.com/package-details",
@@ -458,15 +476,31 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
         "stars": 5,
         "location": "Makkah",
         "description": "Near Haram",
-        "image_url": "https://example.com/storage/umrah/hotels/hotel.jpg",
-        "order": 0
+        "image_url": "https://example.com/storage/umrah/hotels/hotel-1.jpg",
+        "images": [
+          {
+            "id": 101,
+            "image_url": "https://example.com/storage/umrah/hotels/hotel-1.jpg",
+            "order": 0
+          },
+          {
+            "id": 102,
+            "image_url": "https://example.com/storage/umrah/hotels/hotel-2.jpg",
+            "order": 1
+          }
+        ],
+        "order": 0,
+        "total_nights": 3
       }
     ],
     "airlines": [
       {
         "id": 1,
         "name": "Saudia Airlines",
-        "logo_url": "https://example.com/storage/umrah/airlines/saudia.png"
+        "logo_url": "https://example.com/storage/umrah/airlines/saudia.png",
+        "class": "economy",
+        "meal": "2× Hidangan Premium Selama Penerbangan",
+        "baggage": "23 Kg (2Pcs)"
       }
     ],
     "transportations": [
@@ -512,6 +546,21 @@ curl "https://your-domain.com/api/umrah-packages/royal-hilton-signature"
 **Additional Services behavior:**
 - By default, `additional_services` comes from the global active services list.
 - If package-specific overrides are configured in `umrah_package_additional_service`, the detail endpoint returns those overrides instead.
+
+**Date field:**
+- `date` — optional free-form string (max 100 chars) representing the package's departure date or date range. Returned as `null` when not configured. Examples: `"15 Mar 2026"`, `"15-20 Mar 2026"`, `"Q1 2026"`. Stored as a string for flexibility — no parsing or validation of the format is performed.
+
+**Hotel fields:**
+- `image_url` — thumbnail derived from the first item in `images` (ordered by `order`). `null` when the hotel has no images.
+- `images` — full carousel array (max 5 per hotel). Each entry has `id`, `image_url`, `order`. Sorted ascending by `order`.
+- `order` — the hotel's position within this package's hotel list (per-package pivot).
+- `total_nights` — number of nights spent at this hotel within the package (per-package pivot). Defaults to `3` when not configured.
+
+**Airline fields (per-package pivot):**
+- `class` — travel class string. Defaults to `"economy"`. Other common values: `"business"`, `"first"`. Custom strings are allowed (e.g. `"premium economy"`).
+- `meal` — optional free-form string describing meal service (e.g. `"2× Hidangan Premium Selama Penerbangan"`). `null` when not configured.
+- `baggage` — optional free-form string describing baggage allowance (e.g. `"23 Kg (2Pcs)"`). `null` when not configured.
+- These fields are stored on the `umrah_package_airline` pivot, so the same airline can have different values in different packages.
 
 #### 3) Other Additional Services
 
@@ -799,8 +848,8 @@ All successful responses include:
 - All GET endpoints return only active records
 - Records are ordered by their `order` field where applicable
 - Images return absolute URLs
-- `/api/umrah-packages` is paginated and includes `meta` + `links`, with hotels, airlines, and additional services
-- `/api/umrah-packages/{slug}` returns complete package detail sections
+- `/api/umrah-packages` is paginated and includes `meta` + `links`, with hotels (carousel `images` + per-package `total_nights`), airlines (with `class`, `meal`, `baggage`), and additional services
+- `/api/umrah-packages/{slug}` returns complete package detail sections, including hotel `images` carousel, per-package `total_nights`, and per-package airline `class`, `meal`, and `baggage`
 - `/api/umrah-packages/{slug}/other-additional-services` returns paginated add-ons not included in the package
 - Cancellation policy is currently frontend-managed (not part of Umrah API payload)
 - Contact endpoint sends email notifications to admin

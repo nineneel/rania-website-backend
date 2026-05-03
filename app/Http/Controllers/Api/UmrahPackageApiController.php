@@ -83,6 +83,7 @@ class UmrahPackageApiController extends Controller
                 'departure' => $package->departure,
                 'duration' => $package->duration,
                 'departure_schedule' => $package->departure_schedule,
+                'date' => $package->date,
                 'price' => $priceInfo['price'],
                 'currency' => $priceInfo['currency'],
                 'prices' => [
@@ -118,6 +119,9 @@ class UmrahPackageApiController extends Controller
                         'id' => $airline->id,
                         'name' => $airline->name,
                         'logo_url' => $airline->logo_url,
+                        'class' => $airline->pivot->class ?? 'economy',
+                        'meal' => $airline->pivot->meal,
+                        'baggage' => $airline->pivot->baggage,
                     ];
                 }),
                 'additional_services' => $additionalServices->values()->map(function ($service, $index) {
@@ -195,6 +199,7 @@ class UmrahPackageApiController extends Controller
                 'departure' => $package->departure,
                 'duration' => $package->duration,
                 'departure_schedule' => $package->departure_schedule,
+                'date' => $package->date,
                 'price' => $priceInfo['price'],
                 'currency' => $priceInfo['currency'],
                 'prices' => [
@@ -231,6 +236,9 @@ class UmrahPackageApiController extends Controller
                         'id' => $airline->id,
                         'name' => $airline->name,
                         'logo_url' => $airline->logo_url,
+                        'class' => $airline->pivot->class ?? 'economy',
+                        'meal' => $airline->pivot->meal,
+                        'baggage' => $airline->pivot->baggage,
                     ];
                 }),
                 'transportations' => $package->transportations->map(function ($transportation) {

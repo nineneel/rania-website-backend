@@ -867,6 +867,9 @@ class UmrahContentController extends Controller
         $hotelIds = $validated['hotel_ids'] ?? [];
         $hotelNights = $validated['hotel_nights'] ?? [];
         $airlineIds = $validated['airline_ids'] ?? [];
+        $airlineClasses = $validated['airline_classes'] ?? [];
+        $airlineMeals = $validated['airline_meals'] ?? [];
+        $airlineBaggages = $validated['airline_baggages'] ?? [];
         $transportationIds = $validated['transportation_ids'] ?? [];
         $itineraryIds = $validated['itinerary_ids'] ?? [];
         $additionalServiceIds = $validated['additional_service_ids'] ?? [];
@@ -879,6 +882,9 @@ class UmrahContentController extends Controller
             $validated['hotel_ids'],
             $validated['hotel_nights'],
             $validated['airline_ids'],
+            $validated['airline_classes'],
+            $validated['airline_meals'],
+            $validated['airline_baggages'],
             $validated['transportation_ids'],
             $validated['itinerary_ids'],
             $validated['additional_service_ids'],
@@ -908,9 +914,17 @@ class UmrahContentController extends Controller
             $package->hotels()->attach($hotelData);
         }
 
-        // Attach airlines
+        // Attach airlines with class, meal, and baggage
         if (is_array($airlineIds)) {
-            $package->airlines()->attach($airlineIds);
+            $airlineData = [];
+            foreach ($airlineIds as $airlineId) {
+                $airlineData[$airlineId] = [
+                    'class' => $this->resolveAirlineClass($airlineClasses, $airlineId),
+                    'meal' => $this->resolveAirlinePivotString($airlineMeals, $airlineId),
+                    'baggage' => $this->resolveAirlinePivotString($airlineBaggages, $airlineId),
+                ];
+            }
+            $package->airlines()->attach($airlineData);
         }
 
         // Attach transportations with order
@@ -1002,6 +1016,9 @@ class UmrahContentController extends Controller
         $hotelIds = $validated['hotel_ids'] ?? [];
         $hotelNights = $validated['hotel_nights'] ?? [];
         $airlineIds = $validated['airline_ids'] ?? [];
+        $airlineClasses = $validated['airline_classes'] ?? [];
+        $airlineMeals = $validated['airline_meals'] ?? [];
+        $airlineBaggages = $validated['airline_baggages'] ?? [];
         $transportationIds = $validated['transportation_ids'] ?? [];
         $itineraryIds = $validated['itinerary_ids'] ?? [];
         $additionalServiceIds = $validated['additional_service_ids'] ?? [];
@@ -1016,6 +1033,9 @@ class UmrahContentController extends Controller
             $validated['hotel_ids'],
             $validated['hotel_nights'],
             $validated['airline_ids'],
+            $validated['airline_classes'],
+            $validated['airline_meals'],
+            $validated['airline_baggages'],
             $validated['transportation_ids'],
             $validated['itinerary_ids'],
             $validated['additional_service_ids'],
@@ -1045,8 +1065,16 @@ class UmrahContentController extends Controller
         }
         $package->hotels()->sync($hotelData);
 
-        // Sync airlines
-        $package->airlines()->sync($airlineIds);
+        // Sync airlines with class, meal, and baggage
+        $airlineData = [];
+        foreach ($airlineIds as $airlineId) {
+            $airlineData[$airlineId] = [
+                'class' => $this->resolveAirlineClass($airlineClasses, $airlineId),
+                'meal' => $this->resolveAirlinePivotString($airlineMeals, $airlineId),
+                'baggage' => $this->resolveAirlinePivotString($airlineBaggages, $airlineId),
+            ];
+        }
+        $package->airlines()->sync($airlineData);
 
         // Sync transportations with order
         $transportationData = [];
@@ -1153,6 +1181,32 @@ class UmrahContentController extends Controller
         $nights = is_numeric($value) ? (int) $value : 0;
 
         return $nights > 0 ? $nights : 3;
+    }
+
+    /**
+     * Resolve the class for an airline from the request map, defaulting to 'economy'.
+     *
+     * @param  array<int|string, mixed>  $airlineClasses
+     */
+    protected function resolveAirlineClass(array $airlineClasses, int $airlineId): string
+    {
+        $value = $airlineClasses[$airlineId] ?? $airlineClasses[(string) $airlineId] ?? null;
+        $class = is_string($value) ? trim($value) : '';
+
+        return $class !== '' ? $class : 'economy';
+    }
+
+    /**
+     * Resolve a nullable string pivot value (meal/baggage) for an airline, defaulting to null.
+     *
+     * @param  array<int|string, mixed>  $values
+     */
+    protected function resolveAirlinePivotString(array $values, int $airlineId): ?string
+    {
+        $value = $values[$airlineId] ?? $values[(string) $airlineId] ?? null;
+        $string = is_string($value) ? trim($value) : '';
+
+        return $string !== '' ? $string : null;
     }
 
     /**
