@@ -2,14 +2,14 @@ name: Hostinger Deploy
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 jobs:
   tests:
     name: Run Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
     name: Build Frontend Assets
     runs-on: ubuntu-latest
     continue-on-error: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -139,7 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tests, build-assets]
     if: success() || failure() # Deploy even if tests fail (you can change to 'success()' to require passing tests)
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -175,7 +175,7 @@ jobs:
             echo "ℹ️ No package-lock.json found, using npm install"
             npm install --prefer-offline --no-audit
           fi
-          
+
           if grep -q "\"build\"" package.json || grep -q "\"prod\"" package.json; then
             echo "🔨 Building assets for production..."
             npm run build || npm run prod || echo "⚠️ Build script not found or failed"
@@ -210,28 +210,28 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
-            
+
             echo "🚀 Starting deployment..."
-            
+
             cd domains/${{ secrets.WEBSITE_FOLDER }}
-            
+
             # Ensure we're on the correct branch
             git fetch origin
             git checkout main
             git reset --hard origin/main
-            
+
             echo "📦 Installing Composer dependencies..."
             composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-            
+
             # Note: Frontend assets should already be built and committed
             # If you need to build on server, ensure npm/node is available
             # and uncomment the following lines:
             # if [ -f package.json ]; then
             #   npm ci --production && npm run build || npm run prod
             # fi
-            
+
             echo "🔧 Running Laravel setup commands..."
-            
+
             # Run migrations
             php artisan migrate --force
 
@@ -241,37 +241,37 @@ jobs:
             # Clear and cache configuration
             php artisan config:clear
             php artisan config:cache
-            
+
             # Clear and cache routes
             php artisan route:clear
             php artisan route:cache
-            
+
             # Clear and cache views
             php artisan view:clear
             php artisan view:cache
-            
+
             # Optimize application
             php artisan optimize:clear
             php artisan optimize
-            
+
             # Clear and cache events (if available)
             php artisan event:clear || true
             php artisan event:cache || true
-            
+
             # Restart queue workers (if using queues)
             php artisan queue:restart || true
-            
+
             # Restart Horizon (if using Laravel Horizon)
             php artisan horizon:terminate || true
-            
+
             # Clear application cache
             php artisan cache:clear
-            
+
             # Clear OPcache (if available)
             php artisan opcache:clear || true
-            
+
             echo "✅ Deployment completed successfully!"
-            
+
             # Show deployment info
             echo ""
             echo "📊 Deployment Information:"
