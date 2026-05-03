@@ -5,8 +5,10 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FAQController;
+use App\Http\Controllers\HajjContentController;
 use App\Http\Controllers\HomeContentController;
 use App\Http\Controllers\LinktreeController;
+use App\Http\Controllers\NewsArticleController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\RaniaGalleryController;
 use App\Http\Controllers\SocialMediaController;
@@ -130,6 +132,23 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/packages/reorder', [UmrahContentController::class, 'updatePackagesOrder'])->name('packages.reorder');
     });
 
+    // Hajj Content Management Routes - Only accessible by super-admin and admin
+    // Hajj packages reuse umrah hotels/airlines/transportations/itineraries/additional-services
+    Route::prefix('hajj-content')->name('hajj-content.')->group(function () {
+        Route::get('/', [HajjContentController::class, 'index'])->name('index');
+
+        // Packages - redirect to main index for backward compatibility
+        Route::get('/packages', function () {
+            return redirect()->route('hajj-content.index');
+        })->name('packages.index');
+        Route::get('/packages/create', [HajjContentController::class, 'createPackage'])->name('packages.create');
+        Route::post('/packages', [HajjContentController::class, 'storePackage'])->name('packages.store');
+        Route::get('/packages/{package}/edit', [HajjContentController::class, 'editPackage'])->name('packages.edit');
+        Route::put('/packages/{package}', [HajjContentController::class, 'updatePackage'])->name('packages.update');
+        Route::delete('/packages/{package}', [HajjContentController::class, 'destroyPackage'])->name('packages.destroy');
+        Route::post('/packages/reorder', [HajjContentController::class, 'updatePackagesOrder'])->name('packages.reorder');
+    });
+
     // Contact Messages Routes - Accessible by all authenticated users
     Route::prefix('contact-messages')->name('contact-messages.')->group(function () {
         Route::get('/', [ContactMessageController::class, 'index'])->name('index');
@@ -169,6 +188,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{raniaGallery}', [RaniaGalleryController::class, 'update'])->name('update');
         Route::delete('/{raniaGallery}', [RaniaGalleryController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [RaniaGalleryController::class, 'updateOrder'])->name('reorder');
+    });
+
+    // News & Articles Routes - Only accessible by super-admin and admin
+    Route::prefix('news-articles')->name('news-articles.')->group(function () {
+        Route::get('/', [NewsArticleController::class, 'index'])->name('index');
+        Route::get('/create', [NewsArticleController::class, 'create'])->name('create');
+        Route::post('/', [NewsArticleController::class, 'store'])->name('store');
+        Route::get('/{newsArticle}/edit', [NewsArticleController::class, 'edit'])->name('edit');
+        Route::put('/{newsArticle}', [NewsArticleController::class, 'update'])->name('update');
+        Route::delete('/{newsArticle}', [NewsArticleController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [NewsArticleController::class, 'updateOrder'])->name('reorder');
     });
 
     // FAQ Routes - Only accessible by super-admin and admin

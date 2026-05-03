@@ -324,6 +324,121 @@ export interface UmrahAdditionalServiceFormData {
     is_active: boolean;
 }
 
+// Hajj Types — packages reuse Umrah hotels/airlines/transportations/itineraries/additional-services
+export interface HajjPackageService {
+    id: number;
+    title: string;
+    description?: string;
+    is_included: boolean;
+    order: number;
+}
+
+export interface HajjPackageBed {
+    id: number;
+    type: string;
+    bed_count: number;
+    order: number;
+}
+
+export interface HajjPackageImage {
+    id: number;
+    image_path?: string;
+    image_url?: string;
+    order: number;
+}
+
+export interface HajjPackage {
+    id: number;
+    title: string;
+    slug: string;
+    subtitle?: string;
+    description: string;
+    image_path: string;
+    image_url: string;
+    color: string | null;
+    departure: string;
+    duration: string;
+    departure_schedule: string;
+    date: string | null;
+    price_idr: string | null;
+    price_usd: string | null;
+    price_sar: string | null;
+    price_quad_idr: string | null;
+    price_triple_idr: string | null;
+    price_double_idr: string | null;
+    price_quad_usd: string | null;
+    price_triple_usd: string | null;
+    price_double_usd: string | null;
+    price_quad_sar: string | null;
+    price_triple_sar: string | null;
+    price_double_sar: string | null;
+    link: string | null;
+    is_active: boolean;
+    order: number;
+    hotels: UmrahHotel[];
+    airlines: UmrahAirline[];
+    transportations?: UmrahTransportation[];
+    itineraries?: UmrahItinerary[];
+    additional_services?: UmrahAdditionalService[];
+    services?: HajjPackageService[];
+    package_services?: HajjPackageService[];
+    beds?: HajjPackageBed[];
+    package_beds?: HajjPackageBed[];
+    images?: HajjPackageImage[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface HajjPackageServiceFormData {
+    title: string;
+    is_included: boolean;
+}
+
+export interface HajjPackageBedFormData {
+    type: string;
+    bed_count: number;
+}
+
+export interface HajjPackageFormData {
+    title: string;
+    slug: string;
+    subtitle: string;
+    description: string;
+    image: File | null;
+    color: string;
+    gallery_images: File[];
+    existing_gallery_image_ids: number[];
+    departure: string;
+    duration: string;
+    departure_schedule: string;
+    date: string;
+    price_idr: string;
+    price_usd: string;
+    price_sar: string;
+    price_quad_idr: string;
+    price_triple_idr: string;
+    price_double_idr: string;
+    price_quad_usd: string;
+    price_triple_usd: string;
+    price_double_usd: string;
+    price_quad_sar: string;
+    price_triple_sar: string;
+    price_double_sar: string;
+    link: string;
+    is_active: boolean;
+    hotel_ids: number[];
+    hotel_nights: Record<number, number>;
+    airline_ids: number[];
+    airline_classes: Record<number, string>;
+    airline_meals: Record<number, string>;
+    airline_baggages: Record<number, string>;
+    transportation_ids: number[];
+    itinerary_ids: number[];
+    additional_service_ids: number[];
+    package_services: HajjPackageServiceFormData[];
+    package_beds: HajjPackageBedFormData[];
+}
+
 // Contact Message Types
 export type ContactMessageStatus = 'new' | 'read' | 'replied';
 
@@ -399,6 +514,28 @@ export interface RaniaGallery {
 
 export interface RaniaGalleryFormData {
     title: string;
+    image: File | null;
+    is_active: boolean;
+}
+
+// News Article Types
+export interface NewsArticle {
+    id: number;
+    title: string;
+    source: string | null;
+    link: string;
+    image_path: string;
+    image_url?: string;
+    order: number;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface NewsArticleFormData {
+    title: string;
+    source: string;
+    link: string;
     image: File | null;
     is_active: boolean;
 }
